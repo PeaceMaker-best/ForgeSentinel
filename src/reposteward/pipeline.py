@@ -4554,7 +4554,7 @@ class Pipeline:
             or str(pull_activity.get("head_branch") or "") != expected_branch
         ):
             raise PolicyError(
-                "owner attestation requires the exact StewardKit-tracked branch"
+                "owner attestation requires the exact ForgeSentinel-tracked branch"
             )
         if str(raw.get("head_branch") or "") != expected_branch:
             raise PolicyError("GitHub merge facts disagree about the tracked branch")

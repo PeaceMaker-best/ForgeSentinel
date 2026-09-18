@@ -13,9 +13,9 @@ authors = [{ name = "PeaceMaker-best", email = "221849497+PeaceMaker-best@users.
 dependencies = ["jsonschema>=4.23,<5"]
 
 [project.urls]
-Homepage = "https://github.com/PeaceMaker-best/StewardKit"
-Repository = "https://github.com/PeaceMaker-best/StewardKit.git"
-Issues = "https://github.com/PeaceMaker-best/StewardKit/issues"
+Homepage = "https://github.com/PeaceMaker-best/ForgeSentinel"
+Repository = "https://github.com/PeaceMaker-best/ForgeSentinel.git"
+Issues = "https://github.com/PeaceMaker-best/ForgeSentinel/issues"
 
 [project.optional-dependencies]
 codex-sdk = ["openai-codex>=0.147,<0.148"]

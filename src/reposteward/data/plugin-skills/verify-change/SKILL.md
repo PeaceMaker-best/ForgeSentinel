@@ -1,6 +1,6 @@
 ---
 name: verify-change
-description: Verify changes in a linked StewardKit task or assess whether existing verification evidence still applies. Use trusted verification profiles and exact task snapshots.
+description: Verify changes in a linked ForgeSentinel task or assess whether existing verification evidence still applies. Use trusted verification profiles and exact task snapshots.
 ---
 
 # Verify a change

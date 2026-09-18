@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
-  <title id="title">StewardKit workflow from reviewed Issue to verified Pull Request</title>
-  <desc id="desc">A GitHub Issue passes a policy gate into StewardKit. A coding harness edits an isolated workspace without GitHub credentials. A network-free runner verifies the change. A human reviews the evidence before a Draft PR is created. CI and reviewer feedback return to StewardKit.</desc>
+  <title id="title">ForgeSentinel workflow from reviewed Issue to verified Pull Request</title>
+  <desc id="desc">A GitHub Issue passes a policy gate into ForgeSentinel. A coding harness edits an isolated workspace without GitHub credentials. A network-free runner verifies the change. A human reviews the evidence before a Draft PR is created. CI and reviewer feedback return to ForgeSentinel.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0 0 10 5 0 10z" fill="#343a40"/>
@@ -14,7 +14,7 @@
   </defs>
 
   <rect width="1200" height="760" rx="30" fill="#f8f9fa"/>
-  <text x="55" y="62" fill="#212529" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="750">StewardKit — reviewed Issue to verified PR</text>
+  <text x="55" y="62" fill="#212529" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="750">ForgeSentinel — reviewed Issue to verified PR</text>
   <text x="55" y="98" fill="#6c757d" font-family="system-ui, -apple-system, sans-serif" font-size="18">The control plane owns state and public writes. The coding harness only reasons and edits.</text>
 
   <path d="M50 517 C25 517 25 495 25 470 V150 C25 128 45 122 70 122 H690 C720 122 720 148 720 178" fill="none" stroke="#0b7285" stroke-width="3" stroke-dasharray="9 9" stroke-linecap="round" marker-end="url(#feedback-arrow)"/>
@@ -61,7 +61,7 @@
       <text x="610" y="242" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="800">3</text>
       <circle cx="780" cy="246" r="28" fill="#d0bfff" stroke="#6741d9" stroke-width="3"/>
       <path d="M762 249l18 10 18-10M762 240l18 10 18-10M762 231l18 10 18-10" fill="none" stroke="#6741d9" stroke-width="3" stroke-linejoin="round"/>
-      <text x="610" y="294" fill="#4c2ca0" font-size="25" font-weight="850">StewardKit</text>
+      <text x="610" y="294" fill="#4c2ca0" font-size="25" font-weight="850">ForgeSentinel</text>
       <text x="610" y="323" fill="#5f3dc4" font-size="15">Policy · state · audit</text>
       <text x="610" y="346" fill="#5f3dc4" font-size="14">GitHub facts + write gates</text>
     </g>
@@ -114,7 +114,7 @@
 
   <g font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" text-anchor="middle">
     <rect x="50" y="638" width="335" height="48" rx="15" fill="#ffffff" stroke="#ced4da" stroke-width="2"/>
-    <text x="218" y="668" fill="#495057">Portable context lives in StewardKit</text>
+    <text x="218" y="668" fill="#495057">Portable context lives in ForgeSentinel</text>
     <rect x="432" y="638" width="335" height="48" rx="15" fill="#ffffff" stroke="#ced4da" stroke-width="2"/>
     <text x="600" y="668" fill="#495057">Harness gets no GitHub credentials</text>
     <rect x="814" y="638" width="331" height="48" rx="15" fill="#ffffff" stroke="#ced4da" stroke-width="2"/>

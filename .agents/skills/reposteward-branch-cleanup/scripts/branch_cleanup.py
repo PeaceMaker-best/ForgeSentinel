@@ -233,19 +233,19 @@ def _local_json(command: list[str]) -> dict[str, Any]:
             command, capture_output=True, text=True, check=False, env=environment
         )
     except OSError as exc:
-        raise BranchCleanupError("local StewardKit read could not start") from exc
+        raise BranchCleanupError("local ForgeSentinel read could not start") from exc
     if completed.returncode:
         raise BranchCleanupError(
-            f"local StewardKit read failed with exit code {completed.returncode}"
+            f"local ForgeSentinel read failed with exit code {completed.returncode}"
         )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
         raise BranchCleanupError(
-            "local StewardKit read returned invalid JSON"
+            "local ForgeSentinel read returned invalid JSON"
         ) from exc
     if not isinstance(payload, dict):
-        raise BranchCleanupError("local StewardKit read is incomplete")
+        raise BranchCleanupError("local ForgeSentinel read is incomplete")
     return payload
 
 
@@ -676,7 +676,7 @@ def _parser() -> argparse.ArgumentParser:
         "--run-id",
         action="append",
         required=True,
-        help="submitted StewardKit run that owns a branch; repeat as needed",
+        help="submitted ForgeSentinel run that owns a branch; repeat as needed",
     )
     parser.add_argument("--apply", action="store_true", help="delete eligible branches")
     parser.add_argument(

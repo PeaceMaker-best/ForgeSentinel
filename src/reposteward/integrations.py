@@ -15,7 +15,7 @@ from typing import Any
 from .projects import ProjectError, ProjectRegistry, canonical_digest, local_git
 
 SHARED_PATH = ".agents/reposteward-context.md"
-SHARED_TEXT = """# StewardKit task context
+SHARED_TEXT = """# ForgeSentinel task context
 
 At the start of work, and after switching client or resuming a session, run:
 

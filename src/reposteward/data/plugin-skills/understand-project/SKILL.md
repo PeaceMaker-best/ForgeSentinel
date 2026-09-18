@@ -1,6 +1,6 @@
 ---
 name: understand-project
-description: Understand a linked project or locate code and tests for a question using StewardKit source evidence. Use for onboarding and impact exploration, before or during a task.
+description: Understand a linked project or locate code and tests for a question using ForgeSentinel source evidence. Use for onboarding and impact exploration, before or during a task.
 ---
 
 # Understand a project

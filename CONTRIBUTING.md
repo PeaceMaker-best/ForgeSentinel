@@ -1,6 +1,6 @@
-# 参与 StewardKit 开发
+# 参与 ForgeSentinel 开发
 
-StewardKit 采用 Issue 驱动、聚焦 PR、自动检查和人工 Review 的维护方式。除明显的拼写修正外，
+ForgeSentinel 采用 Issue 驱动、聚焦 PR、自动检查和人工 Review 的维护方式。除明显的拼写修正外，
 请先创建或认领 Issue，再开始实现。
 
 多人共同准备 Issue 时，先使用团队配置的 GitHub Project Draft Issue 作为线上提案。提案在转换为
@@ -50,7 +50,7 @@ uv run reposteward image build
 - 使用 Coding Harness 时，仍需由提交者检查完整 diff、测试结果和公开说明。
 
 仓库内的 `.agents/skills/reposteward-maintainer/SKILL.md` 提供从 Issue 审核、实现、验证到
-CI/Reviewer 跟进的可复用流程，适用于不同 Coding Harness；它不会替代 StewardKit 代码中的
+CI/Reviewer 跟进的可复用流程，适用于不同 Coding Harness；它不会替代 ForgeSentinel 代码中的
 身份、凭据、摘要和公开写入门禁。
 
 ## Pull Request

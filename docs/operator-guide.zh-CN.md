@@ -1,30 +1,30 @@
-# StewardKit 中文操作手册
+# ForgeSentinel 中文操作手册
 
-> 本文档保留 StewardKit 0.1 的详细命令和运维说明。产品入口、当前能力与长期方向见
+> 本文档保留 ForgeSentinel 0.1 的详细命令和运维说明。产品入口、当前能力与长期方向见
 > [English README](../README.md) 或 [中文 README](../README.zh-CN.md)。
 
 > 把 GitHub Issue 变成经过验证和人工确认的 Pull Request。
 
-StewardKit 是运行在 GitHub 和 Coding Harness 之间的本地维护控制面。它保存 Issue、仓库策略、
+ForgeSentinel 是运行在 GitHub 和 Coding Harness 之间的本地维护控制面。它保存 Issue、仓库策略、
 执行状态和验证证据，让 Codex 等 Harness 专注于推理和修改工作区。是否创建 Issue、推送分支或
 提交 PR，仍由用户通过单独的审核门禁决定。
 
-StewardKit 适合需要长期维护 GitHub 项目、在多个 Coding Harness 或账号之间切换，又希望保留
+ForgeSentinel 适合需要长期维护 GitHub 项目、在多个 Coding Harness 或账号之间切换，又希望保留
 统一审阅记录的维护者和贡献者。它不是批量 PR 机器人，也不会让模型直接持有 GitHub 凭据。
 
 <p align="center">
-  <img src="assets/reposteward-lifecycle.svg" width="100%" alt="StewardKit 工作流：GitHub Issue 经过策略门禁进入 StewardKit，Coding Harness 在无凭据工作区实现修改，隔离 Runner 完成验证，人工审阅后创建 Draft PR，CI 与 Reviewer 反馈再增量回流。">
+  <img src="assets/reposteward-lifecycle.svg" width="100%" alt="ForgeSentinel 工作流：GitHub Issue 经过策略门禁进入 ForgeSentinel，Coding Harness 在无凭据工作区实现修改，隔离 Runner 完成验证，人工审阅后创建 Draft PR，CI 与 Reviewer 反馈再增量回流。">
 </p>
 
 <p align="center"><sub>技术图提供可编辑的 <a href="assets/reposteward-lifecycle.excalidraw">Excalidraw 源文件</a>。</sub></p>
 
 ## 一分钟理解
 
-StewardKit 把一次代码维护任务拆成八个可审计步骤：
+ForgeSentinel 把一次代码维护任务拆成八个可审计步骤：
 
 1. 从 GitHub Issue 冻结目标、范围和讨论事实；
 2. 检查重复项、权限、贡献规则和竞争工作；
-3. 由 StewardKit 保存策略、状态、上下文、审计和 GitHub 写入门禁；
+3. 由 ForgeSentinel 保存策略、状态、上下文、审计和 GitHub 写入门禁；
 4. 让 Coding Harness 只在隔离 workspace 中推理和编辑，不向它暴露 GitHub 凭据；
 5. 在无凭据、无网络的 Runner 中执行允许的验证命令；
 6. 由用户审阅最终 diff、验证证据和风险；
@@ -40,7 +40,7 @@ StewardKit 把一次代码维护任务拆成八个可审计步骤：
 | --- | --- |
 | 第一次试用 | [安装](#安装) → [添加项目](#添加项目) → [基本工作流](#基本工作流) |
 | 评估产品边界 | [产品边界](#产品边界) → [架构文档](architecture.md) |
-| 运行指标评测 | [StewardKitBench 指标评测](#repostewardbench-指标评测) |
+| 运行指标评测 | [ForgeSentinelBench 指标评测](#repostewardbench-指标评测) |
 | 切换 Harness、账号或机器 | [上下文与跨 Harness 交接](#上下文与跨-harness-交接) |
 | 参与开发 | [贡献指南](../CONTRIBUTING.md) → [安全报告说明](../SECURITY.md) |
 
@@ -62,7 +62,7 @@ Claude Code、DeepSeek 等 Harness 目前只有统一接入契约，尚未提供
 
 | 组件 | 职责 |
 | --- | --- |
-| StewardKit | 流水线、仓库策略、持久上下文、审计和 GitHub 事实 |
+| ForgeSentinel | 流水线、仓库策略、持久上下文、审计和 GitHub 事实 |
 | Coding Harness | 推理和工作区编辑，不接触 GitHub 凭据 |
 | Docker Runner | 安装依赖并执行隔离验证 |
 | 用户 | 审阅 Issue、diff 和验证证据，决定是否公开提交 |
@@ -77,8 +77,8 @@ Harness 的原生会话只用于加速恢复。版本化 Context Pack 与 Checkp
 要求 Python 3.12+、uv、Git、Docker、GitHub CLI，以及已登录的 Codex CLI。
 
 ```bash
-git clone https://github.com/PeaceMaker-best/StewardKit.git
-cd StewardKit
+git clone https://github.com/PeaceMaker-best/ForgeSentinel.git
+cd ForgeSentinel
 uv sync
 uv run reposteward --help
 uv run reposteward init
@@ -94,7 +94,7 @@ uv run reposteward init \
   --git-email your-github-login@users.noreply.github.com
 ```
 
-配置文件只保存身份声明和运行偏好，不保存 GitHub token。StewardKit 优先读取当前进程的
+配置文件只保存身份声明和运行偏好，不保存 GitHub token。ForgeSentinel 优先读取当前进程的
 `GITHUB_TOKEN` 或 `GH_TOKEN`；未设置时使用 `gh auth token`。新用户默认添加 DCO sign-off，
 但不强制 GPG/SSH 签名；需要签名时可在用户配置中设置 `sign_commits = true`。
 
@@ -242,7 +242,7 @@ unlimited_diff_lines = true
 
 ## 准备 Issue 草稿
 
-StewardKit 可以在本地生成结构化 Markdown，并只读搜索相似 Issue：
+ForgeSentinel 可以在本地生成结构化 Markdown，并只读搜索相似 Issue：
 
 ```bash
 uv run reposteward issue draft owner/repository \
@@ -322,7 +322,7 @@ uv run reposteward inbox --repo owner/repository --format text
 ```
 
 Portfolio 只读取开放 PR；只有开放快照完整时，当一个 tracked submitted PR 已不在该快照中，
-Inbox 才会在 StewardKit 本地原生合并审计的最新终态精确为 `merged` 或 `already_merged` 时隐藏
+Inbox 才会在 ForgeSentinel 本地原生合并审计的最新终态精确为 `merged` 或 `already_merged` 时隐藏
 该历史项目。Portfolio 读取失败或不完整，以及缺失、失败、未知或 closed-unmerged 合并结果仍显示
 为 `refresh_required`；开放 PR 的新鲜在线事实始终优先。
 
@@ -490,7 +490,7 @@ uv run reposteward logs RUN_ID --command 1 --tail-chars 12000
 2,000 个字符，失败命令保留最后 12,000 个字符；更完整的日志文件有 2,000,000 字符上限，
 并记录原始长度和 SHA-256。
 
-StewardKit 会从 Codex CLI JSONL 或 Codex SDK turn result 中提取输入、缓存输入、输出和推理
+ForgeSentinel 会从 Codex CLI JSONL 或 Codex SDK turn result 中提取输入、缓存输入、输出和推理
 token，并记录工具调用次数；CLI 适配器还记录事件流大小。资源预算告警会出现在 Review Packet
 中，但不会绕过验证。
 
@@ -524,7 +524,7 @@ Checkpoint 来源标记为 `derived_review_required`，导入来源标记为 `im
 
 ## 生命周期用量与成本
 
-每次 `prepare` 和 `repair` 的 Harness 执行完成后，StewardKit 都会追加一条有摘要保护的紧凑
+每次 `prepare` 和 `repair` 的 Harness 执行完成后，ForgeSentinel 都会追加一条有摘要保护的紧凑
 用量事件。事件只保存 token、工具调用、持续时间、会话恢复结果和上下文裁剪原因等有界计数，不保存
 原始提示、模型响应、告警文本或日志路径。既有数据库会无损升级；升级前没有采集到的指标显示为
 `unknown`，不会按零计算。
@@ -559,9 +559,9 @@ output_per_million = "4.00"
 token 中推理部分的普通输出单价。一次查询超过 10,000 条运行时会要求缩小过滤范围。成功的 merge
 结果也会携带对应 PR 的 `usage_summary`，方便把实际交付与生命周期成本关联起来。
 
-## StewardKitBench 指标评测
+## ForgeSentinelBench 指标评测
 
-StewardKitBench v0 把已有安全、上下文、项目管理、恢复和规模不变量组织为独立的离线评测套件。
+ForgeSentinelBench v0 把已有安全、上下文、项目管理、恢复和规模不变量组织为独立的离线评测套件。
 它不读取项目配置、不访问网络、不调用 Harness，也不修改 workspace 或 GitHub。完整运行并原子写入
 机器可读报告：
 
@@ -617,7 +617,7 @@ uv run reposteward context import handoff.json
 Harness 时，应从该文件重建上下文；即使原生 session 无法恢复，任务事实和验证证据也不会
 丢失。当前内置实现包括默认的 `codex-cli` 和显式可选的 `codex-sdk`，Claude Code 和 DeepSeek
 等实现可以通过统一 Harness 契约接入，无需修改 Pipeline。`codex-sdk` 会尝试恢复同一原生
-thread；恢复失败时从 Context Pack 开启新 thread。同一个 work item 再次运行时，StewardKit
+thread；恢复失败时从 Context Pack 开启新 thread。同一个 work item 再次运行时，ForgeSentinel
 会把最近的 Checkpoint 压缩进新的 Context Pack，并要求 Harness 对历史结论重新核验。
 
 Context Pack、Checkpoint 和导出包采用 Draft 2020-12 JSON Schema，并在写入或导入时严格
@@ -627,7 +627,7 @@ Context Pack、Checkpoint 和导出包采用 Draft 2020-12 JSON Schema，并在�
 
 ## 项目级 Skills
 
-StewardKit 使用 `.agents/skills/<name>/SKILL.md` 保存可跨 Coding Harness 复用的维护流程。本仓库
+ForgeSentinel 使用 `.agents/skills/<name>/SKILL.md` 保存可跨 Coding Harness 复用的维护流程。本仓库
 提供的 `reposteward-maintainer` skill 覆盖 Issue 审核、聚焦 PR、CI/Reviewer 跟进和上下文交接；
 `reposteward-branch-cleanup` skill 用于盘点已合并 PR 留下的远端分支，并在明确授权后清理精确
 匹配的同仓库 head。状态机、凭据隔离、内容摘要、验证与已有 GitHub 公开写入门禁不会由 skill
@@ -666,7 +666,7 @@ Context Pack v2 先建立最多 24 项的轻量技能目录，只保存经过清
 Claude Code 或 DeepSeek 等实现时可以共享流程，又不会让每次调用承担全部技能正文的上下文成本。
 超过目录上限时 Harness 会继续检查 `.agents/skills`，不会把“未进入目录”等同于“不存在”。
 
-技能元数据和正文都属于仓库不可信输入。StewardKit 不读取越出工作区的链接，frontmatter 最多
+技能元数据和正文都属于仓库不可信输入。ForgeSentinel 不读取越出工作区的链接，frontmatter 最多
 扫描 8 KiB，单个技能文件上限为 1 MiB；Prompt 中的目录值会保持在 JSON 边界内，技能不能放宽
 凭据、网络或公开写入门禁。
 历史 Context Pack v1 与 Bundle v1 仍可严格校验和导入，新生成的文档使用 Context Pack/Bundle v2，
@@ -840,7 +840,7 @@ apply 前会追加 `applying` 审计；每个工作区在删除前会重新扫�
 ## 名称迁移
 
 项目原名为 Starfix。由于 PyPI 已存在活跃的 `starfix` 包，且 GitHub 上已有同名开发工具，
-公开产品改名为 StewardKit：Python distribution 和 CLI 均使用 `reposteward`，建议 GitHub
+公开产品改名为 ForgeSentinel：Python distribution 和 CLI 均使用 `reposteward`，建议 GitHub
 仓库使用 `repo-steward`。旧状态目录和 `starfix.sqlite3` 数据库仍会被兼容读取。
 
 ## 关联已经在本地开发的项目

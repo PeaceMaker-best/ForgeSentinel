@@ -208,7 +208,7 @@ def build_lifecycle_trace(
         if database_schema_version != SCHEMA_VERSION:
             raise LifecycleTraceError(
                 "lifecycle trace requires the current Store schema; run another "
-                "StewardKit command to migrate it first"
+                "ForgeSentinel command to migrate it first"
             )
 
         work_item_row = connection.execute(

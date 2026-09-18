@@ -191,7 +191,7 @@ def build_harness_prompt(context: ContextPack) -> str:
     handoff = (
         json.dumps(context.handoff, ensure_ascii=False, indent=2)
         if context.handoff is not None
-        else "No prior StewardKit checkpoint exists for this task."
+        else "No prior ForgeSentinel checkpoint exists for this task."
     )
     follow_up = (
         json.dumps(

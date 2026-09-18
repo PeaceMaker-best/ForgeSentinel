@@ -217,7 +217,7 @@ class ExternalTaskTests(unittest.TestCase):
             self.assertEqual(
                 main(["task", "context", result["run_id"], "--format", "markdown"]), 0
             )
-        self.assertIn("StewardKit task handoff", output.getvalue())
+        self.assertIn("ForgeSentinel task handoff", output.getvalue())
         self.assertEqual(reader.context(result["run_id"])["revision"], 0)
         self.github.assert_not_called()
 

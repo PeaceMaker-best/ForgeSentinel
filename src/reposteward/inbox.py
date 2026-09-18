@@ -214,7 +214,7 @@ def build_maintainer_inbox(
                     "untracked_pull_request" if facts_complete else "refresh_required"
                 ),
                 summary=(
-                    f"PR #{pull_number} 没有关联的 StewardKit run"
+                    f"PR #{pull_number} 没有关联的 ForgeSentinel run"
                     if facts_complete
                     else f"未跟踪 PR #{pull_number} 的在线事实不完整"
                 ),

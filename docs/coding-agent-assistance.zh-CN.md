@@ -1,10 +1,10 @@
-# 用 StewardKit 辅助已有 Coding Agent
+# 用 ForgeSentinel 辅助已有 Coding Agent
 
-StewardKit 负责把项目、任务目标、未完成事项、决定与验证证据连接起来。日常编码继续使用自己的 Codex、Claude Code 或 Copilot；完成一段工作后留下检查点，换客户端时重新读取当前任务。
+ForgeSentinel 负责把项目、任务目标、未完成事项、决定与验证证据连接起来。日常编码继续使用自己的 Codex、Claude Code 或 Copilot；完成一段工作后留下检查点，换客户端时重新读取当前任务。
 
 ## 关联已有项目
 
-先按项目自己的方式 clone，再在 StewardKit 的用户配置添加对应仓库的 maintainer 策略。`project link` 只建立本地关联，不 clone、不改动目标代码。相同 remote 的多个 worktree 属于同一个项目，但各有独立的工作区绑定。
+先按项目自己的方式 clone，再在 ForgeSentinel 的用户配置添加对应仓库的 maintainer 策略。`project link` 只建立本地关联，不 clone、不改动目标代码。相同 remote 的多个 worktree 属于同一个项目，但各有独立的工作区绑定。
 
 ```sh
 reposteward repo add owner/project --mode maintainer
@@ -31,7 +31,7 @@ Codex 用户也可用 `plugin plan/export` 导出绑定工作区的本机插件�
 
 `integration plan` 先生成可审阅 diff 和摘要，`apply` 必须使用该摘要。接入保留原有 AGENTS.md、CLAUDE.md 与 Copilot 指令；撤销只移除自己管理的片段。普通文件不会保存机器路径或认证信息。
 
-MCP 是可选依赖：在运行 StewardKit 的 Python 环境安装 `reposteward[mcp]`。`mcp config PATH --client codex|claude-code|copilot-vscode` 输出本机配置预览，不自动写客户端配置。服务每次只绑定一个具体工作区，提供 project、context、evidence、understanding、checkpoint、verification 六类工具。MCP 服务启动后持有当时的用户配置；修改策略或验证 profile 后应重启服务。
+MCP 是可选依赖：在运行 ForgeSentinel 的 Python 环境安装 `reposteward[mcp]`。`mcp config PATH --client codex|claude-code|copilot-vscode` 输出本机配置预览，不自动写客户端配置。服务每次只绑定一个具体工作区，提供 project、context、evidence、understanding、checkpoint、verification 六类工具。MCP 服务启动后持有当时的用户配置；修改策略或验证 profile 后应重启服务。
 
 Codex 可以通过用户 `config.toml` 配置 STDIO MCP；Claude Code 可使用临时配置文件及 `--mcp-config`；VS Code 使用用户 MCP 设置。命令路径和本地配置保存在用户目录。[Codex MCP 配置](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)、[Claude Code MCP](https://code.claude.com/docs/en/mcp)。
 
@@ -64,7 +64,7 @@ show 默认仅查看本地事实。refresh 显式拉取 GitHub，缓存有时间
 
 | 入口 | 实现与验证 | 实际限制 |
 | --- | --- | --- |
-| 项目关联、任务 CLI | 容器回归覆盖，StewardKit #104 已实际创建任务 | 开发任务仍需已审阅开放 GitHub Issue 与 feature branch |
+| 项目关联、任务 CLI | 容器回归覆盖，ForgeSentinel #104 已实际创建任务 | 开发任务仍需已审阅开放 GitHub Issue 与 feature branch |
 | AGENTS / CLAUDE / Copilot 文件 | 管理片段、冲突、恢复与撤销已通过容器测试 | 本轮未实测各客户端的文件自动加载优先级 |
 | MCP 服务 | 五类工具、真实 STDIO、官方 SDK、新旧协议及取消已通过容器测试 | 本地工作区范围；配置修改后重启 |
 | Codex CLI 0.153.0 | 真实模型通过 MCP 读取原始 Issue，保存并回读 revision 1 → 2 | 此次证明上下文接续；未让客户端编码或执行测试 |

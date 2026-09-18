@@ -5,7 +5,7 @@
 请不要为凭据泄露、权限绕过、命令注入、沙箱逃逸或其他安全问题创建公开 Issue。
 
 优先使用 GitHub 的
-[Private vulnerability reporting](https://github.com/PeaceMaker-best/StewardKit/security/advisories/new)
+[Private vulnerability reporting](https://github.com/PeaceMaker-best/ForgeSentinel/security/advisories/new)
 提交报告。报告中请包含受影响版本、影响范围、最小复现和建议的缓解方式，但不要附带真实凭据或
 无关的个人数据。
 

@@ -1,6 +1,6 @@
 # 从陌生仓库到可回查的项目理解
 
-StewardKit 的 `understand` 用于先理解整个项目，再缩小到一次改动的相关代码。
+ForgeSentinel 的 `understand` 用于先理解整个项目，再缩小到一次改动的相关代码。
 人可以直接阅读 Markdown；已有的 coding agent 通过同一份 JSON/MCP 事实继续解释。
 不需要把全仓代码一次性放进模型上下文，也不把模型的解释当成已验证的代码事实。
 
@@ -62,7 +62,7 @@ reposteward understand evidence /path/to/project code:FULL_DIGEST --start-line 4
 
 给已有 Agent 的建议任务：
 
-> 先读取 StewardKit 项目导览，再查询这个 Issue 涉及的模块。按证据 ID 分段阅读实现与测试。
+> 先读取 ForgeSentinel 项目导览，再查询这个 Issue 涉及的模块。按证据 ID 分段阅读实现与测试。
 > 解释用户入口如何到达核心逻辑、数据如何流动、哪些边界影响这次修改。
 > 每条关键结论引用文件和行号；区分代码事实、文档声明与推断，说明尚未确认的问题。
 > 不将静态导入当作运行时执行链，也不将测试文件关联当作已经通过验证。

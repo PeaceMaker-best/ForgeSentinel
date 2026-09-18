@@ -20,7 +20,7 @@ from reposteward.cli import main
 from reposteward.handoff_benchmark import handoff_gold, observe_handoff
 
 
-class StewardKitBenchTests(unittest.TestCase):
+class ForgeSentinelBenchTests(unittest.TestCase):
     def test_complete_suite_passes_hard_gates_and_all_categories(self) -> None:
         report = run_benchmark()
 

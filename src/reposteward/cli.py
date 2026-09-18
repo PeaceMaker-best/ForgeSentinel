@@ -526,7 +526,7 @@ def _parser() -> argparse.ArgumentParser:
     usage_report.add_argument("--include-runs", action="store_true")
 
     benchmark = subparsers.add_parser(
-        "benchmark", help="run deterministic offline StewardKitBench scenarios"
+        "benchmark", help="run deterministic offline ForgeSentinelBench scenarios"
     )
     benchmark_commands = benchmark.add_subparsers(
         dest="benchmark_command", required=True
@@ -1146,7 +1146,7 @@ def main(argv: list[str] | None = None) -> int:
                 and args.format == "markdown"
             ):
                 print(
-                    "# StewardKit task handoff\n\n```json\n"
+                    "# ForgeSentinel task handoff\n\n```json\n"
                     + json.dumps(result, ensure_ascii=False, indent=2)
                     + "\n```"
                 )

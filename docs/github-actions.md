@@ -1,6 +1,6 @@
 # GitHub Actions 公开写入门禁
 
-StewardKit 把 Issue 提案和正式 Issue 分开。多人协作的共享真相是 GitHub Projects Draft Issue；
+ForgeSentinel 把 Issue 提案和正式 Issue 分开。多人协作的共享真相是 GitHub Projects Draft Issue；
 本地 SQLite 只保存个人草稿和操作缓存，不作为团队审批记录。
 
 ## Issue 流程
@@ -19,7 +19,7 @@ promotion workflow
 Project Draft Issue 转换为正式仓库 Issue
 ```
 
-GitHub 官方支持 Project Draft Issue 在线保存标题和正文，并在审核后转换为仓库 Issue。StewardKit
+GitHub 官方支持 Project Draft Issue 在线保存标题和正文，并在审核后转换为仓库 Issue。ForgeSentinel
 不会直接调用普通的 Issue 创建接口，因此 Project item 也是转换操作的幂等锚点。
 
 ### 仓库变量
@@ -49,7 +49,7 @@ Issue 写权限；私有仓库还需要相应的 `repo` 访问。实际权限应
 - `reposteward-issue-review`：保护只读 Project token；
 - `reposteward-issue-publishing`：配置 required reviewers，并只允许受保护的默认分支部署。
 
-StewardKit 默认使用 `require_distinct_reviewer = true`。只有单维护者在可信用户配置中显式设为
+ForgeSentinel 默认使用 `require_distinct_reviewer = true`。只有单维护者在可信用户配置中显式设为
 `false` 时，提案创建者才可以同时作为 `--reviewed-by`；项目级配置无法覆盖 `[issue_review]`。
 当前附带 workflow 每次都生成默认配置，因此固定用于团队第二人模式。单维护者自审应使用本地受控
 CLI，而不是移除 workflow 的 Environment 保护。关闭 distinct reviewer 不会关闭最新 digest、
@@ -71,7 +71,7 @@ CLI，而不是移除 workflow 的 Environment 保护。关闭 distinct reviewer
 
 同一目标仓库的 promotion 会串行执行。因此多人同时提交相似提案时，后一个任务会在前一个
 Issue 已可见后重新查重；重复项快照发生变化将使旧 digest 失效，不会直接继续发布。
-为保证数字 `itemId` 查找有界，StewardKit 最多扫描 1,000 个未归档 Project item；团队应将已处理的
+为保证数字 `itemId` 查找有界，ForgeSentinel 最多扫描 1,000 个未归档 Project item；团队应将已处理的
 提案定期归档，也可以直接使用 `stage` 返回的 GraphQL node ID。
 
 安全报告不会进入该流程。检测到高风险安全语义或凭据时，CLI 会在任何线上暂存或转换前失败。

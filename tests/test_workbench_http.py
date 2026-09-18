@@ -54,7 +54,7 @@ class WorkbenchHTTPTests(unittest.TestCase):
         self.assertIn("/#session=", self.server.url)
         status, headers, body = self.request("/", token=False)
         self.assertEqual(status, 200)
-        self.assertIn(b"StewardKit", body)
+        self.assertIn(b"ForgeSentinel", body)
         self.assertNotIn(self.server.session.encode(), body)
         self.assertEqual(headers["Cache-Control"], "no-store")
         self.assertIn("frame-ancestors 'none'", headers["Content-Security-Policy"])

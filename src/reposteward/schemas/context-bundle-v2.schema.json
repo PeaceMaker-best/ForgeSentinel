@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:reposteward:schema:context-bundle:2",
-  "title": "StewardKit Portable Context Bundle v2",
+  "title": "ForgeSentinel Portable Context Bundle v2",
   "type": "object",
   "additionalProperties": false,
   "required": [

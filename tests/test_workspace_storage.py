@@ -51,7 +51,7 @@ def create_workspace(
     workspace = root / "owner__repo" / name
     workspace.mkdir(parents=True)
     git(workspace, "init", "--quiet")
-    git(workspace, "config", "user.name", "StewardKit Test")
+    git(workspace, "config", "user.name", "ForgeSentinel Test")
     git(workspace, "config", "user.email", "test@example.com")
     (workspace / "tracked.txt").write_text("retained source\n", encoding="utf-8")
     git(workspace, "add", "tracked.txt")

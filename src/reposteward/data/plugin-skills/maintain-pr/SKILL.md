@@ -1,6 +1,6 @@
 ---
 name: maintain-pr
-description: Inspect CI, review feedback and merge blockers for a StewardKit-managed pull request. Use for PR follow-up and scoped repair; preserve existing publication gates.
+description: Inspect CI, review feedback and merge blockers for a ForgeSentinel-managed pull request. Use for PR follow-up and scoped repair; preserve existing publication gates.
 ---
 
 # Maintain a pull request

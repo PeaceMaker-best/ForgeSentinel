@@ -235,7 +235,7 @@ class ScopedBridge:
         self, name: str, arguments: dict[str, Any], *, cancel_event: Event | None = None
     ) -> dict:
         if name not in SCHEMAS:
-            raise ValueError("unknown StewardKit tool")
+            raise ValueError("unknown ForgeSentinel tool")
         if len(json.dumps(arguments, ensure_ascii=False).encode()) > MAX_REQUEST_BYTES:
             raise ValueError("tool input exceeds the request limit")
         try:

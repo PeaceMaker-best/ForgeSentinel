@@ -1,6 +1,6 @@
-# StewardKit 架构与上下文连续性
+# ForgeSentinel 架构与上下文连续性
 
-StewardKit 不是另一个 Coding Agent。它是位于 GitHub、Coding Harness 和隔离验证环境之间的
+ForgeSentinel 不是另一个 Coding Agent。它是位于 GitHub、Coding Harness 和隔离验证环境之间的
 项目维护控制面：把一次性的 Agent 对话变成可审计、可恢复、可移交的 Issue-to-PR 工作流。
 
 ## 为什么不直接使用 Codex 或 Claude Code
@@ -9,7 +9,7 @@ Coding Harness 擅长理解代码、调用工具和修改工作区，但它通�
 门禁、公开写入规则、验证隔离、历史决策和审阅责任。直接使用 Harness 时，这些内容需要在每次
 新会话、账号切换或模型切换后重新解释。
 
-StewardKit 在 Harness 之外持续保存这些信息，并提供稳定的控制面：
+ForgeSentinel 在 Harness 之外持续保存这些信息，并提供稳定的控制面：
 
 - 项目策略：仓库贡献规则、验证 allowlist、diff 限额和公开提交门禁；
 - 工作状态：Issue、run、commit、验证证据、风险、决定和下一步；
@@ -58,12 +58,12 @@ local draft ── explicit stage ──► Project Draft Issue
                               repository Issue
 ```
 
-- StewardKit 拥有流水线、策略、持久状态、审计和 GitHub 读写。
+- ForgeSentinel 拥有流水线、策略、持久状态、审计和 GitHub 读写。
 - Harness 只接收一个 Context Pack 和隔离工作区，返回规范化结果与使用量。
 - Runner 只安装依赖并执行已允许的验证命令，不接触宿主凭据。
 - 人类审阅者决定是否发布，并对最终提交负责。
 
-StewardKitBench 位于这些运行时边界之外，只调用确定性的控制面纯函数和临时 SQLite fixture。
+ForgeSentinelBench 位于这些运行时边界之外，只调用确定性的控制面纯函数和临时 SQLite fixture。
 版本化 manifest 把安全硬门槛与 context、management、recovery、scale 指标分开；场景重复执行得到
 稳定结果摘要，机器相关耗时只作为观察值。评测器不加载仓库账号配置、不联网、不调用 Harness，
 也不拥有公开写入能力，因此 benchmark 本身不能扩大运行时权限。
@@ -85,7 +85,7 @@ GitHub 当前事实临时构建仓库级快照：先完整分页枚举开放 PR�
 可以用 expected digest 检测后续读取是否已经陈旧。v1 不把快照写入数据库、不调用 Harness，也不
 修改 workspace 或 GitHub；它是依赖排序、WIP 策略和单步协调器的只读事实层。
 
-WIP 容量门禁位于显式 submit 边界。StewardKit 先按精确 branch 查询是否已有 open PR：已有 PR 的
+WIP 容量门禁位于显式 submit 边界。ForgeSentinel 先按精确 branch 查询是否已有 open PR：已有 PR 的
 增量 push 不消耗新容量；创建或重新打开 PR 才完整分页读取仓库 open PR，并只统计当前配置身份创建
 的项目。默认每仓库 4 个，用户层可以调高，项目和仓库层只能取更小值。读取失败或达到上限时，在
 创建 fork、push 或写 PR 前失败关闭。该门禁控制在线并发，不调用 Harness，也不改变 Portfolio 的
@@ -103,8 +103,8 @@ SCC、拓扑和反向邻接遍历以 O(V+E) 检测循环、传播阻塞，并识
 维护者确认与撤销都是本地追加事件，绑定仓库、依赖双方、当前 head、身份、来源和前一事件。相同
 动作可并发幂等重试，撤销不删除历史；head 变化使旧确认失效。Portfolio plan 不调用 Harness 或写
 GitHub，Merge Decision 只在当前 PR 存在直接依赖时读取目标 PR，并把依赖摘要和 blocker 纳入已有
-的两次 freshness 检查。StewardKit 不能阻止维护者绕过它直接在 GitHub 点击 Ready，但所有由
-StewardKit 产生的 Ready 判断和 merge 决策都会失败关闭。
+的两次 freshness 检查。ForgeSentinel 不能阻止维护者绕过它直接在 GitHub 点击 Ready，但所有由
+ForgeSentinel 产生的 Ready 判断和 merge 决策都会失败关闭。
 
 Batch Orchestrator 是 Portfolio 与持久队列之间的确定性协调层。它在一次 open-PR listing 上复用
 Portfolio Snapshot 和 Dependency Plan，将本地最新 submitted run 与精确 PR branch/head 关联，
@@ -261,7 +261,7 @@ Issue、阶段、Harness 和模型，只包含规范化资源计数、原生会�
 错配及不一致摘要。Bundle digest 只能检测意外损坏或内容变化，不是数字签名；导入数据仍保留其
 原始信任级别。
 
-Context Pack v2 包含一个技能目录 v1。StewardKit 按稳定相对路径扫描最多 24 个项目技能，只扫描
+Context Pack v2 包含一个技能目录 v1。ForgeSentinel 按稳定相对路径扫描最多 24 个项目技能，只扫描
 每个 `SKILL.md` 前 8 KiB 内的简单 frontmatter 标量，单个技能文件最多 1 MiB，并记录清洗后的
 名称、描述、内容指纹、来源、
 信任状态、有效性、无效原因和截断数量。目录自身摘要通过 `repository_skill_catalog` source 进入
@@ -271,7 +271,7 @@ Context Pack 的 source digest。越界链接、超限、坏 UTF-8 和不支持�
 
 ## 跨会话与跨账号恢复
 
-同一个 work item 再次执行时，StewardKit 会读取最新 Checkpoint，压缩后放入新的 Context Pack。
+同一个 work item 再次执行时，ForgeSentinel 会读取最新 Checkpoint，压缩后放入新的 Context Pack。
 长描述、条目数和交接字段均有上限，避免历史上下文无限增长。历史结论标记为
 `derived_review_required`，新的 Harness 必须对照当前 checkout 和证据重新验证。
 
