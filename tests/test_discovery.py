@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class DiscoveryTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.config = load_config(ROOT / "examples" / "tiammomo.toml")
+        self.config = load_config(ROOT / "examples" / "PeaceMaker-best.toml")
         self.policy = self.config.repositories["langchain-ai/deepagents"]
         self.repository = RepositoryInfo(
             full_name="langchain-ai/deepagents",
@@ -49,13 +49,13 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(candidate.blockers, ())
 
     def test_assignment_to_configured_login_is_not_a_blocker(self) -> None:
-        issue = replace(self.issue, assignees=("tiammomo",))
+        issue = replace(self.issue, assignees=("PeaceMaker-best",))
 
         candidate = score_issue(issue, self.repository, self.policy, self.config)
 
         self.assertEqual(candidate.blockers, ())
         self.assertTrue(
-            any("assigned to tiammomo" in item for item in candidate.reasons)
+            any("assigned to PeaceMaker-best" in item for item in candidate.reasons)
         )
 
     def test_assignment_to_someone_else_is_blocked(self) -> None:

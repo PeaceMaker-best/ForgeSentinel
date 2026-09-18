@@ -249,7 +249,7 @@ class ReviewPacketTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory)
             config = replace(
-                load_config(ROOT / "examples" / "tiammomo.toml"), state_dir=state_dir
+                load_config(ROOT / "examples" / "PeaceMaker-best.toml"), state_dir=state_dir
             )
             store = Store(state_dir / "reposteward.sqlite3")
             run_id = store.start_run("owner/repo", 7, "verification")
@@ -289,7 +289,7 @@ class ReviewPacketTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory)
             config = replace(
-                load_config(ROOT / "examples" / "tiammomo.toml"), state_dir=state_dir
+                load_config(ROOT / "examples" / "PeaceMaker-best.toml"), state_dir=state_dir
             )
             store = Store(state_dir / "reposteward.sqlite3")
             run_id = store.start_run("owner/repo", 7, "pull_request")

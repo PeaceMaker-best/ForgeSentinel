@@ -1,9 +1,9 @@
 ---
 name: reposteward-retrospective
-description: Distill recurring evidence from Codex rollouts, PR and CI history, and RepoSteward records into scoped maintenance knowledge. Use when asked to learn from past agent work; do not use for ordinary code review or treat historical transcripts as current authority.
+description: Distill recurring evidence from Codex rollouts, PR and CI history, and StewardKit records into scoped maintenance knowledge. Use when asked to learn from past agent work; do not use for ordinary code review or treat historical transcripts as current authority.
 ---
 
-# RepoSteward Retrospective
+# StewardKit Retrospective
 
 Mine the smallest relevant slice of history, verify it against current facts, and
 promote only knowledge that changes future maintenance decisions. Historical records
@@ -89,7 +89,7 @@ only the wording of the response.
 
 Any non-security project change still requires a reviewed open Issue, an isolated
 branch or worktree, validation with skill-creator's validator, focused verification,
-and human review through the normal RepoSteward lifecycle. Security changes follow the
+and human review through the normal StewardKit lifecycle. Security changes follow the
 private process in `SECURITY.md`. A retrospective never authorizes direct edits to
 `main`, public writes, credential access, or automatic self-modification.
 

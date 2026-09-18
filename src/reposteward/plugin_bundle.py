@@ -120,7 +120,7 @@ class PluginBundle:
         content["connection.json"] = _json(connection)
         content[".mcp.json"] = _json({"mcpServers": {name: entry}})
         content["README.md"] = (
-            "# Local RepoSteward plugin\n\n"
+            "# Local StewardKit plugin\n\n"
             "This bundle belongs to the workspace in connection.json. Review .mcp.json "
             "and the four skills before installing with your client's supported local "
             "plugin workflow. Exporting does not install a plugin or validate a model session.\n\n"
@@ -137,16 +137,16 @@ class PluginBundle:
                 "name": name,
                 "version": f"{__version__}+bundle.{bundle_digest[:12]}",
                 "description": "Workspace-scoped project understanding, task handoff and verification assistance.",
-                "author": {"name": "RepoSteward contributors"},
-                "repository": "https://github.com/tiammomo/RepoSteward",
+                "author": {"name": "StewardKit contributors"},
+                "repository": "https://github.com/PeaceMaker-best/StewardKit",
                 "license": "MIT",
                 "skills": "./skills/",
                 "mcpServers": "./.mcp.json",
                 "interface": {
-                    "displayName": "RepoSteward",
+                    "displayName": "StewardKit",
                     "shortDescription": "Project context and verified task continuity",
                     "longDescription": "Read project evidence, resume work and verify changes in one explicitly linked workspace.",
-                    "developerName": "RepoSteward contributors",
+                    "developerName": "StewardKit contributors",
                     "category": "Developer Tools",
                     "capabilities": ["Read", "Write"],
                     "defaultPrompt": [

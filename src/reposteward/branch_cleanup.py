@@ -68,7 +68,7 @@ def build_branch_cleanup_plan(
     incomplete_attempts: list[dict[str, Any]],
     policy_digest: str,
 ) -> dict[str, Any]:
-    """Classify only RepoSteward-managed terminal branches from complete facts."""
+    """Classify only StewardKit-managed terminal branches from complete facts."""
     if not re.fullmatch(r"[0-9a-f]{64}", policy_digest):
         raise ValueError("branch cleanup policy digest is invalid")
     if (

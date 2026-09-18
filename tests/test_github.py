@@ -303,7 +303,7 @@ class GitHubCompetingWorkTests(unittest.TestCase):
             ], None
 
         with patch.object(client, "_request", side_effect=request):
-            conflicts = client.competing_work("owner/repo", 7, own_login="tiammomo")
+            conflicts = client.competing_work("owner/repo", 7, own_login="PeaceMaker-best")
 
         self.assertEqual(
             {value.kind for value in conflicts},
@@ -791,9 +791,9 @@ class GitHubPullRequestTests(unittest.TestCase):
             "state": "closed",
             "draft": False,
             "head": {
-                "ref": "tiammomo/docs/example",
+                "ref": "PeaceMaker-best/docs/example",
                 "sha": "a" * 40,
-                "repo": {"owner": {"login": "tiammomo"}},
+                "repo": {"owner": {"login": "PeaceMaker-best"}},
             },
             "base": {"ref": "main"},
         }
@@ -805,8 +805,8 @@ class GitHubPullRequestTests(unittest.TestCase):
             result = client.reopen_pull_request(
                 "owner/repo",
                 12,
-                owner="tiammomo",
-                branch="tiammomo/docs/example",
+                owner="PeaceMaker-best",
+                branch="PeaceMaker-best/docs/example",
                 base="main",
                 title="docs: example",
                 body="Closes #1",
@@ -833,7 +833,7 @@ class GitHubPullRequestTests(unittest.TestCase):
             "head": {
                 "ref": "other/branch",
                 "sha": "a" * 40,
-                "repo": {"owner": {"login": "tiammomo"}},
+                "repo": {"owner": {"login": "PeaceMaker-best"}},
             },
             "base": {"ref": "main"},
         }
@@ -845,8 +845,8 @@ class GitHubPullRequestTests(unittest.TestCase):
             client.reopen_pull_request(
                 "owner/repo",
                 12,
-                owner="tiammomo",
-                branch="tiammomo/docs/example",
+                owner="PeaceMaker-best",
+                branch="PeaceMaker-best/docs/example",
                 base="main",
                 title="docs: example",
                 body="Closes #1",

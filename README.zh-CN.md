@@ -1,10 +1,10 @@
-# RepoSteward
+# StewardKit
 
 <p align="right"><a href="README.md">English</a></p>
 
 > 让模型按照你定义的规则治理 GitHub 仓库。
 
-RepoSteward 是位于 GitHub、Coding Harness 和隔离验证环境之间的本地优先控制面。仓库策略、
+StewardKit 是位于 GitHub、Coding Harness 和隔离验证环境之间的本地优先控制面。仓库策略、
 任务状态、审阅证据和公开写入门禁都保存在模型会话之外。
 
 当前 0.1 版本把经过审核的 GitHub Issue 转换为经过验证和人工审阅的 Pull Request。
@@ -13,7 +13,7 @@ RepoSteward 是位于 GitHub、Coding Harness 和隔离验证环境之间的本�
 下文提到的自治管家属于路线图，不是当前版本已经提供的功能。
 
 <p align="center">
-  <img src="docs/assets/reposteward-lifecycle.svg" width="100%" alt="RepoSteward 工作流：经过审核的 GitHub Issue 进入无凭据 Coding 工作区，隔离验证生成证据，维护者检查结果，再通过独立门禁发布 Draft PR 并跟进 CI 与 Reviewer 反馈。">
+  <img src="docs/assets/reposteward-lifecycle.svg" width="100%" alt="StewardKit 工作流：经过审核的 GitHub Issue 进入无凭据 Coding 工作区，隔离验证生成证据，维护者检查结果，再通过独立门禁发布 Draft PR 并跟进 CI 与 Reviewer 反馈。">
 </p>
 
 <p align="center"><sub>流程图提供可编辑的 <a href="docs/assets/reposteward-lifecycle.excalidraw">Excalidraw 源文件</a>。</sub></p>
@@ -25,12 +25,12 @@ RepoSteward 是位于 GitHub、Coding Harness 和隔离验证环境之间的本�
 定位相关实现与测试。导览区分文档声明、Python 静态关系和阅读建议，并提供带版本的代码来源。
 首次阅读无需关联任务或 GitHub 登录。详见[项目理解与上手指南](docs/project-understanding.zh-CN.md)。
 
-## 为什么需要 RepoSteward
+## 为什么需要 StewardKit
 
 Coding Harness 擅长理解代码和修改工作区，但模型会话不适合持有长期仓库策略、GitHub 凭据、
 公开写入权限或审阅记录。
 
-RepoSteward 把这些责任留在确定性控制面：
+StewardKit 把这些责任留在确定性控制面：
 
 - 开始工作前冻结 Issue、基础 commit、仓库指导文件和策略；
 - 只向 Harness 提供无凭据 worktree 和有界 Context Pack；
@@ -42,7 +42,7 @@ RepoSteward 把这些责任留在确定性控制面：
 项目主要服务使用 Coding Agent 维护多个仓库的个人维护者和小团队。Contributor 流程继续受支持，
 但 Maintainer 流程是默认产品路径。
 
-RepoSteward 与 Coding Model、CI 和 GitHub 项目管理配合使用。它负责约束维护流程，不以批量制造
+StewardKit 与 Coding Model、CI 和 GitHub 项目管理配合使用。它负责约束维护流程，不以批量制造
 PR 为目标。
 
 ## 当前产品与长期方向
@@ -57,7 +57,7 @@ PR 为目标。
 | 合并 | 只读资格判断、可选 Owner Attestation、显式 merge 门禁 | 每个仓库根据表现取得并失去合并权限 |
 
 在经过审核的 Issue 修改实现前，现有安全门禁仍是权威事实。
-[定位 RFC #70](https://github.com/tiammomo/RepoSteward/issues/70) 记录模型自治仓库治理的长期方向。
+[定位 RFC #70](https://github.com/PeaceMaker-best/StewardKit/issues/70) 记录模型自治仓库治理的长期方向。
 
 ## 安装
 
@@ -71,11 +71,11 @@ PR 为目标。
 `reposteward version` 显示安装信息；`reposteward doctor --local` 可检查配置来源与数据库
 兼容性，无需认证，也不会触发迁移。
 
-RepoSteward 要求 Python 3.12+、uv、Git、Docker、GitHub CLI，以及已登录的 Codex CLI。
+StewardKit 要求 Python 3.12+、uv、Git、Docker、GitHub CLI，以及已登录的 Codex CLI。
 
 ```bash
-git clone https://github.com/tiammomo/RepoSteward.git
-cd RepoSteward
+git clone https://github.com/PeaceMaker-best/StewardKit.git
+cd StewardKit
 uv sync
 uv run reposteward init
 uv run reposteward --help
@@ -144,7 +144,7 @@ commit。`merge-decision` 保存确定性的资格判断，但不执行合并。
 
 ## Maintainer 视图
 
-RepoSteward 还提供以只读为主的仓库级视图：
+StewardKit 还提供以只读为主的仓库级视图：
 
 ```bash
 uv run reposteward inbox --repo owner/repository --format text
@@ -160,7 +160,7 @@ uv run reposteward benchmark run --output .artifacts/benchmark.json
 持久队列和 Batch Planner 只保存有界的控制面意图。它们不能自行开启 submit、Owner Attestation
 或 merge 权限。
 
-`benchmark run` 完全离线运行 RepoStewardBench v0。版本化 fixtures 覆盖安全门槛、上下文边界、
+`benchmark run` 完全离线运行 StewardKitBench v0。版本化 fixtures 覆盖安全门槛、上下文边界、
 维护者注意力、故障恢复和规模；每个场景会重复执行以检测非确定性，关键安全与恢复场景组成硬门槛，
 机器相关耗时只作为观察数据。使用 `--baseline PREVIOUS.json` 可以比较不同 commit 的语义指标变化。
 
@@ -174,7 +174,7 @@ uv run reposteward benchmark run --output .artifacts/benchmark.json
 - GitHub 事实不完整、head 或策略变化、存在竞争工作、高风险路径或 diff 超限时失败关闭。
 - 每类公开写入都有独立环境门禁和新鲜度检查；队列不能自行开启这些门禁。
 
-GitHub 写入使用配置的维护者身份。RepoSteward 在本地审计状态中保存模型、策略、证据、意图和结果
+GitHub 写入使用配置的维护者身份。StewardKit 在本地审计状态中保存模型、策略、证据、意图和结果
 来源。
 
 ## 可移植任务状态
@@ -217,11 +217,11 @@ uv run reposteward context import handoff.json
 | 完整项目配置 | [TOML 示例](reposteward.example.toml) |
 | 贡献流程 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 私下报告安全问题 | [SECURITY.md](SECURITY.md) |
-| 长期定位决策 | [RFC #70](https://github.com/tiammomo/RepoSteward/issues/70) |
+| 长期定位决策 | [RFC #70](https://github.com/PeaceMaker-best/StewardKit/issues/70) |
 
 ## 项目状态
 
-RepoSteward 当前版本是 0.1。配置、Schema 和公开接口在 1.0 前仍可能调整。内置 Harness 包括
+StewardKit 当前版本是 0.1。配置、Schema 和公开接口在 1.0 前仍可能调整。内置 Harness 包括
 Codex CLI 和可选的 Codex SDK。Claude Code、DeepSeek 和模型自治仓库治理尚无内置实现。
 
 项目采用 MIT 许可证。项目原名为 Starfix；文档列出的旧配置和状态位置仍保持兼容读取。

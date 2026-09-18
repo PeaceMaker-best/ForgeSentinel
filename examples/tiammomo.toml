@@ -5,9 +5,9 @@ state_dir = ".starfix"
 namespace_state = false
 
 [github]
-login = "tiammomo"
-git_name = "tiammomo"
-git_email = "tiammomo@users.noreply.github.com"
+login = "PeaceMaker-best"
+git_name = "PeaceMaker-best"
+git_email = "221849497+PeaceMaker-best@users.noreply.github.com"
 sign_commits = true
 signoff_commits = true
 api_url = "https://api.github.com"

@@ -753,7 +753,7 @@ class HarnessContractTests(unittest.TestCase):
                 check=True,
             )
             config = replace(
-                load_config(ROOT / "examples" / "tiammomo.toml"),
+                load_config(ROOT / "examples" / "PeaceMaker-best.toml"),
                 state_dir=root / "state",
             )
 

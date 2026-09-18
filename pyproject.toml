@@ -9,13 +9,13 @@ description = "Local-first, policy-gated control plane for turning GitHub issues
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
-authors = [{ name = "tiammomo", email = "tiammomo@users.noreply.github.com" }]
+authors = [{ name = "PeaceMaker-best", email = "221849497+PeaceMaker-best@users.noreply.github.com" }]
 dependencies = ["jsonschema>=4.23,<5"]
 
 [project.urls]
-Homepage = "https://github.com/tiammomo/RepoSteward"
-Repository = "https://github.com/tiammomo/RepoSteward.git"
-Issues = "https://github.com/tiammomo/RepoSteward/issues"
+Homepage = "https://github.com/PeaceMaker-best/StewardKit"
+Repository = "https://github.com/PeaceMaker-best/StewardKit.git"
+Issues = "https://github.com/PeaceMaker-best/StewardKit/issues"
 
 [project.optional-dependencies]
 codex-sdk = ["openai-codex>=0.147,<0.148"]

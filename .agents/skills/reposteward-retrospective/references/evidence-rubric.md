@@ -6,7 +6,7 @@ history and checked for secrets.
 ## Authority levels
 
 1. **Authoritative current fact:** current repository policy and source, fresh GitHub
-   Issue or PR state, exact CI logs, signed commits, and RepoSteward audit records.
+   Issue or PR state, exact CI logs, signed commits, and StewardKit audit records.
 2. **Rebuildable projection:** a bounded history excerpt, final summary, thread index,
    or derived incident note with enough provenance to recheck.
 3. **Unverified inference:** an interpretation that lacks current confirmation or an

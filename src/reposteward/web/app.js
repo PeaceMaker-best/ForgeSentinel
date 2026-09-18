@@ -188,7 +188,7 @@
         for (const client of Object.keys(result.commands.mcp_clients)) { const option = node("option", "", clientNames[client] || client); option.value = client; clientSelect.append(option); }
         const preview = node("div", "", command(result.commands.mcp_clients[clientSelect.value]));
         clientSelect.addEventListener("change", () => preview.replaceChildren(command(result.commands.mcp_clients[clientSelect.value])));
-        detail.append(details("入口、关联模块与覆盖说明", guide), section("在目标项目继续"), clientSelect, preview, node("p", "meta", "复制的是 POSIX 终端命令，保留当前 RepoSteward 配置来源。它预览客户端配置；实际会话由你使用的 Agent 提供。"));
+        detail.append(details("入口、关联模块与覆盖说明", guide), section("在目标项目继续"), clientSelect, preview, node("p", "meta", "复制的是 POSIX 终端命令，保留当前 StewardKit 配置来源。它预览客户端配置；实际会话由你使用的 Agent 提供。"));
       } catch (error) { if (error.name !== "AbortError" && currentGuide === guideGeneration) detail.replaceChildren(errorBox(error)); }
     }
     input.addEventListener("keydown", event => { if (event.key === "Enter") load(); });
@@ -263,7 +263,7 @@
     try { parts = location.hash.slice(1).split("/").map(decodeURIComponent); } catch { parts = []; }
     const view = labels[parts[0]] ? parts[0] : "today";
     document.getElementById("page-label").textContent = labels[view];
-    document.title = labels[view] + " · RepoSteward";
+    document.title = labels[view] + " · StewardKit";
     for (const anchor of document.querySelectorAll("nav a")) {
       if (anchor.dataset.view === view) anchor.setAttribute("aria-current", "page"); else anchor.removeAttribute("aria-current");
     }

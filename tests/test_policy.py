@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class PolicyTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.config = load_config(ROOT / "examples" / "tiammomo.toml")
+        self.config = load_config(ROOT / "examples" / "PeaceMaker-best.toml")
         self.repository = self.config.repositories["langchain-ai/deepagents"]
 
     def test_conventional_title_returns_scope(self) -> None:
@@ -157,10 +157,10 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
         )
         self.assertIn("Closes #5112", body)
-        self.assertIn("tiammomo", body)
+        self.assertIn("PeaceMaker-best", body)
         self.assertIn("takes responsibility", body)
 
     def test_pull_request_body_reports_the_actual_harness(self) -> None:
@@ -175,7 +175,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
         )
 
         self.assertIn("an external coding workspace", body)
@@ -194,7 +194,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("Fixes #123", body)
@@ -215,7 +215,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 }
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("What kind of change", body)
@@ -238,7 +238,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("# 🚀 Feature", body)
@@ -261,7 +261,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 }
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("# 📚 Documentation PR", body)
@@ -285,7 +285,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 }
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("## Call graph", body)
@@ -310,7 +310,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 }
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("Fixes #966", body)
@@ -338,7 +338,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 }
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("## What does this PR do?", body)
@@ -376,7 +376,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("## 这次改了什么", body)
@@ -412,7 +412,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("Fixes #1434", body)
@@ -447,7 +447,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("Interaction only: selecting `/plan`", body)
@@ -478,7 +478,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("Adds a compact zoom row", body)
@@ -514,7 +514,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("- [x] `docs` / `test` / `chore`", body)
@@ -550,7 +550,7 @@ class PolicyTests(unittest.TestCase):
                     "risks": [],
                 },
             },
-            "tiammomo",
+            "PeaceMaker-best",
             policy=policy,
         )
         self.assertIn("## Summary", body)

@@ -3,7 +3,7 @@ name: reposteward-mutation-review
 description: Review GitHub and other external state mutations for exact authority, freshness, atomicity, durable attempts, reconciliation, and idempotent recovery. Use for mutation workflow design or review; not for read-only queries or as a replacement for operation-specific skills.
 ---
 
-# RepoSteward Mutation Review
+# StewardKit Mutation Review
 
 Review external writes as state transitions that may race, partially succeed, or lose
 their response. This skill finds design and implementation gaps; it grants no authority

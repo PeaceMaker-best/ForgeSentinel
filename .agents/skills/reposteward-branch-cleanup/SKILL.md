@@ -1,12 +1,12 @@
 ---
 name: reposteward-branch-cleanup
-description: Audit and clean remote GitHub branches left by RepoSteward-managed pull requests. Use after PRs merge or when stale remote branches accumulate; never use it for active, protected, default, fork, shared, or closed-unmerged branches.
+description: Audit and clean remote GitHub branches left by StewardKit-managed pull requests. Use after PRs merge or when stale remote branches accumulate; never use it for active, protected, default, fork, shared, or closed-unmerged branches.
 ---
 
-# RepoSteward Branch Cleanup
+# StewardKit Branch Cleanup
 
 Prefer the repository's native `delete_branch_on_merge` setting. When a managed branch
-remains, use RepoSteward's native plan/apply state machine so classification,
+remains, use StewardKit's native plan/apply state machine so classification,
 freshness checks, deletion reconciliation, and append-only local auditing stay bound
 to the submitted run and authoritative merge result.
 
@@ -19,7 +19,7 @@ uv run reposteward branch-cleanup plan owner/repository --format text
 ```
 
 Review `candidates`, `pending`, `absent`, `completed`, `retained`, and `plan_digest`.
-A candidate must be owned by a local submitted RepoSteward run, have an exact
+A candidate must be owned by a local submitted StewardKit run, have an exact
 successful merge audit, and be the sole same-repository PR history for
 that branch. Its merged PR, current branch, and recorded run must bind the same SHA.
 The default branch, protected or unknown-protection branches, forks, active or shared

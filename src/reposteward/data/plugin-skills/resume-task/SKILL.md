@@ -1,6 +1,6 @@
 ---
 name: resume-task
-description: Resume a RepoSteward task after a break, context compaction or a change of coding client. Recover requirements, decisions and evidence, then save a scoped checkpoint.
+description: Resume a StewardKit task after a break, context compaction or a change of coding client. Recover requirements, decisions and evidence, then save a scoped checkpoint.
 ---
 
 # Resume a task

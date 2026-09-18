@@ -1,6 +1,6 @@
-# RepoSteward 自身的接续试点 · 2026-09-05
+# StewardKit 自身的接续试点 · 2026-09-05
 
-用户选择 RepoSteward 自身，任务为已审阅开放 [Issue #104](https://github.com/tiammomo/RepoSteward/issues/104)。这是同一开发任务的上下文恢复实验，没有让两个客户端各自实现功能。独立任务台账保留原始 Issue、三项未完成工作、一项决定及开发快照。
+用户选择 StewardKit 自身，任务为已审阅开放 [Issue #104](https://github.com/PeaceMaker-best/StewardKit/issues/104)。这是同一开发任务的上下文恢复实验，没有让两个客户端各自实现功能。独立任务台账保留原始 Issue、三项未完成工作、一项决定及开发快照。
 
 | 观测 | Codex CLI 0.153.0 | Claude Code 2.1.81 |
 | --- | --- | --- |
@@ -9,7 +9,7 @@
 | MCP 操作 | context → evidence → checkpoint → context，四次完成 | 未取得成功调用证据 |
 | 检查点 | revision 1 → 2 | 没有新检查点 |
 | 未完成事项 | 三项全部保留，台账回读相同 | 未验证 |
-| 决定 | 使用 RepoSteward 自身试点，理由和来源保留 | 未验证 |
+| 决定 | 使用 StewardKit 自身试点，理由和来源保留 | 未验证 |
 | 后继客户端读取前任说明 | Codex 留下了接续说明 | 被服务端 429 阻断 |
 | 客户端执行测试 | 没有 | 没有 |
 | 公开写入 | 没有 | 没有 |

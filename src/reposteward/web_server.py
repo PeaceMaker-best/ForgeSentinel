@@ -92,7 +92,7 @@ class LocalServer(ThreadingHTTPServer):
 
 class Handler(BaseHTTPRequestHandler):
     server: LocalServer
-    server_version = "RepoSteward"
+    server_version = "StewardKit"
     sys_version = ""
 
     def log_message(self, format, *args) -> None:
@@ -225,7 +225,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def serve(config: AppConfig, *, port: int = 0) -> None:
     with LocalServer(Workbench(config), port=port) as server:
-        print(f"RepoSteward 本地工作台：{server.url}", flush=True)
+        print(f"StewardKit 本地工作台：{server.url}", flush=True)
         print("仅本机、只读。链接在本次进程中有效；按 Ctrl+C 停止。", flush=True)
         try:
             server.serve_forever(poll_interval=0.2)

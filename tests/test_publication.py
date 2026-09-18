@@ -16,18 +16,18 @@ ROOT = Path(__file__).resolve().parents[1]
 class PublicationStrategyTests(unittest.TestCase):
     def setUp(self) -> None:
         self.pipeline = Pipeline.__new__(Pipeline)
-        self.pipeline.config = load_config(ROOT / "examples" / "tiammomo.toml")
+        self.pipeline.config = load_config(ROOT / "examples" / "PeaceMaker-best.toml")
 
     def test_contributor_strategy_uses_authenticated_users_fork(self) -> None:
         client = Mock()
-        client.ensure_fork.return_value = "tiammomo/example"
+        client.ensure_fork.return_value = "PeaceMaker-best/example"
         policy = RepositoryPolicy(name="owner/example")
 
         destination, owner = self.pipeline._publication_target(client, policy)
 
-        self.assertEqual(destination, "tiammomo/example")
-        self.assertEqual(owner, "tiammomo")
-        client.ensure_fork.assert_called_once_with("owner/example", "tiammomo")
+        self.assertEqual(destination, "PeaceMaker-best/example")
+        self.assertEqual(owner, "PeaceMaker-best")
+        client.ensure_fork.assert_called_once_with("owner/example", "PeaceMaker-best")
 
     def test_maintainer_strategy_uses_original_repository_after_permission_check(
         self,

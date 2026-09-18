@@ -1,8 +1,8 @@
-# RepoSteward contributor guidance
+# StewardKit contributor guidance
 
 ## Scope
 
-RepoSteward discovers public GitHub issues, prepares fixes in disposable clones, and
+StewardKit discovers public GitHub issues, prepares fixes in disposable clones, and
 opens pull requests only after repository-specific gates and local human review.
 
 ## Commands
@@ -19,7 +19,7 @@ opens pull requests only after repository-specific gates and local human review.
   worktree, and be merged through a focused PR. Never commit or push code directly to
   `main`. Handle security emergencies through the private process in `SECURITY.md`.
 - Scope each Issue and PR around one concrete, independently verifiable capability.
-  RepoSteward does not use changed-line count to force one capability into artificial
+  StewardKit does not use changed-line count to force one capability into artificial
   slices; change size remains review evidence, not the scope boundary. Keep unrelated
   capabilities separate and preserve every non-line safety gate.
 - Never expose GitHub credentials to a coding harness, tests, repository hooks,
@@ -38,7 +38,7 @@ opens pull requests only after repository-specific gates and local human review.
   set in the user-owned configuration for a single-maintainer repository.
 - Keep public-repository tests inside the hardened verifier container.
 - Treat remote branch deletion as a separate terminal cleanup. Delete only an exact
-  RepoSteward-managed same-repository head after its PR merged, the SHA is unchanged,
+  StewardKit-managed same-repository head after its PR merged, the SHA is unchanged,
   and fresh checks show it is neither default, protected, active, shared, nor used by
   another open PR. Keep closed-unmerged and fork branches by default.
 

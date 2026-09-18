@@ -462,7 +462,7 @@ class ExternalTasks:
                         "locator": f"task:{run_id}:snapshot:{expected_revision + 1}",
                         "status": "observed",
                         "digest": snapshot["digest"],
-                        "summary": "Code observed by RepoSteward; Agent completion and tests remain unverified.",
+                        "summary": "Code observed by StewardKit; Agent completion and tests remain unverified.",
                     }
                 ],
             }

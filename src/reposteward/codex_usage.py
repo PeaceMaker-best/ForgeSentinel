@@ -1,7 +1,7 @@
 """Bounded, prompt-free projections of explicitly selected local Codex turns.
 
 Rollouts are an internal client format, not a provider billing API. Keep this
-compatibility adapter separate from the stable RepoSteward usage schema.
+compatibility adapter separate from the stable StewardKit usage schema.
 """
 
 from __future__ import annotations

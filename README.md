@@ -1,10 +1,10 @@
-# RepoSteward
+# StewardKit
 
 <p align="right"><a href="README.zh-CN.md">简体中文</a></p>
 
 > Govern GitHub repositories with coding models under rules you own.
 
-RepoSteward is a local-first control plane between GitHub, coding harnesses, and an
+StewardKit is a local-first control plane between GitHub, coding harnesses, and an
 isolated verifier. It keeps repository policy, task state, review evidence, and public
 write gates outside the model session.
 
@@ -15,7 +15,7 @@ limits set by the maintainer. That autonomous steward is a roadmap, not a featur
 the current release.
 
 <p align="center">
-  <img src="docs/assets/reposteward-lifecycle.svg" width="100%" alt="RepoSteward workflow: a reviewed GitHub Issue enters a credential-free coding workspace, isolated verification produces evidence, a maintainer reviews the result, and a separate gate publishes a Draft PR for CI and reviewer follow-up.">
+  <img src="docs/assets/reposteward-lifecycle.svg" width="100%" alt="StewardKit workflow: a reviewed GitHub Issue enters a credential-free coding workspace, isolated verification produces evidence, a maintainer reviews the result, and a separate gate publishes a Draft PR for CI and reviewer follow-up.">
 </p>
 
 <p align="center"><sub>The diagram has an editable <a href="docs/assets/reposteward-lifecycle.excalidraw">Excalidraw source</a>.</sub></p>
@@ -28,13 +28,13 @@ The guide links project declarations, Python static relationships and a suggeste
 route to versioned source evidence. Reading does not require a linked task or GitHub login.
 See the [project understanding guide](docs/project-understanding.zh-CN.md) for limits and MCP access.
 
-## Why RepoSteward exists
+## Why StewardKit exists
 
 Coding harnesses are good at understanding code and editing a workspace. A model
 session is a poor place to own durable repository policy, GitHub credentials, public
 write authority, or the record of what was reviewed.
 
-RepoSteward keeps those responsibilities in a deterministic control plane:
+StewardKit keeps those responsibilities in a deterministic control plane:
 
 - it freezes the Issue, base commit, repository instructions, and policy before work;
 - it gives the harness a credential-free worktree and a bounded Context Pack;
@@ -47,7 +47,7 @@ The project is designed for individual maintainers and small teams that maintain
 several repositories with coding agents. Contributor workflows are supported, but the
 maintainer workflow is the primary product path.
 
-RepoSteward works alongside coding models, CI, and GitHub project management. Its job
+StewardKit works alongside coding models, CI, and GitHub project management. Its job
 is to govern the maintenance workflow, not to produce a large number of pull requests.
 
 ## Current product and long-term direction
@@ -62,7 +62,7 @@ is to govern the maintenance workflow, not to produce a large number of pull req
 | Merge | Read-only eligibility, optional owner attestation, explicit merge gate | Merge permission earned per repository and revoked after poor outcomes |
 
 Current safety gates remain authoritative until a reviewed Issue changes the
-implementation. [RFC #70](https://github.com/tiammomo/RepoSteward/issues/70) records
+implementation. [RFC #70](https://github.com/PeaceMaker-best/StewardKit/issues/70) records
 the model-governed repository direction.
 
 ## Install
@@ -80,8 +80,8 @@ GitHub authentication, and the configured coding harness. Local code reading and
 offline diagnostics can be used before configuring those execution services.
 
 ```bash
-git clone https://github.com/tiammomo/RepoSteward.git
-cd RepoSteward
+git clone https://github.com/PeaceMaker-best/StewardKit.git
+cd StewardKit
 uv sync
 uv run reposteward init
 uv run reposteward --help
@@ -156,7 +156,7 @@ deterministic eligibility result without merging.
 
 ## Maintainer views
 
-RepoSteward also exposes repository-level, mostly read-only views:
+StewardKit also exposes repository-level, mostly read-only views:
 
 ```bash
 uv run reposteward inbox --repo owner/repository --format text
@@ -187,7 +187,7 @@ identity, and fresh exact branch/PR facts. The leased Git delete uses the host S
 identity; ambiguous results stay pending for read-only reconciliation and never change
 the authoritative merge result.
 
-`benchmark run` executes RepoStewardBench v0 entirely offline. Its versioned fixtures
+`benchmark run` executes StewardKitBench v0 entirely offline. Its versioned fixtures
 cover safety gates, context bounds, maintainer attention, recovery, and scale. Every
 scenario is repeated to detect nondeterminism, critical safety and recovery scenarios
 form a hard gate, and machine-specific duration is reported only as informational data.
@@ -210,7 +210,7 @@ Use `--baseline PREVIOUS.json` to compare semantic metric deltas between commits
 - Public writes have separate environment gates and fresh-state checks. A queue cannot
   enable those gates on its own.
 
-GitHub writes use the configured maintainer identity. RepoSteward keeps model,
+GitHub writes use the configured maintainer identity. StewardKit keeps model,
 policy, evidence, intent, and result provenance in its local audit state.
 
 ## Portable task state
@@ -258,11 +258,11 @@ authority.
 | Full project configuration | [Example TOML](reposteward.example.toml) |
 | Contribution workflow | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Private security reporting | [SECURITY.md](SECURITY.md) |
-| Long-term positioning decision | [RFC #70](https://github.com/tiammomo/RepoSteward/issues/70) |
+| Long-term positioning decision | [RFC #70](https://github.com/PeaceMaker-best/StewardKit/issues/70) |
 
 ## Project status
 
-RepoSteward is at version 0.1. Configuration, schemas, and public interfaces may change
+StewardKit is at version 0.1. Configuration, schemas, and public interfaces may change
 before 1.0. The built-in harnesses are Codex CLI and the optional Codex SDK.
 Claude Code, DeepSeek, and autonomous repository governance do not have built-in
 implementations yet.
@@ -285,4 +285,4 @@ uv build
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. Report vulnerabilities
 through [SECURITY.md](SECURITY.md), not a public Issue.
 
-For using RepoSteward with existing coding agents, see the [assistance guide (中文)](docs/coding-agent-assistance.zh-CN.md) and [actual client pilot](docs/handoff-pilot-2026-09-05.zh-CN.md).
+For using StewardKit with existing coding agents, see the [assistance guide (中文)](docs/coding-agent-assistance.zh-CN.md) and [actual client pilot](docs/handoff-pilot-2026-09-05.zh-CN.md).

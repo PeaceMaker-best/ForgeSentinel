@@ -148,7 +148,7 @@ def attach_proposal_marker(body: str, *, repository: str, draft_id: str) -> str:
 
 
 def proposal_body(body: str, *, repository: str) -> str:
-    """Strip and validate optional RepoSteward routing metadata."""
+    """Strip and validate optional StewardKit routing metadata."""
     match = PROPOSAL_MARKER.search(body)
     if match and match.group("repository").casefold() != repository.casefold():
         raise ValueError(

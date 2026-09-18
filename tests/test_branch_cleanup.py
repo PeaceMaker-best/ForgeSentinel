@@ -377,7 +377,7 @@ class BranchCleanupPipelineTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         root = Path(self.temporary.name)
-        base = load_config(ROOT / "examples" / "tiammomo.toml")
+        base = load_config(ROOT / "examples" / "PeaceMaker-best.toml")
         policy = RepositoryPolicy(
             name="owner/repo",
             mode="maintainer",

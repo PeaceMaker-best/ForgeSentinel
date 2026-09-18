@@ -703,7 +703,7 @@ def ready_checkpoint(
     )
     remaining = result.next_actions or (
         "Review the prepared diff and verification evidence.",
-        "Submit only through RepoSteward's explicit reviewed submission gate.",
+        "Submit only through StewardKit's explicit reviewed submission gate.",
     )
     return {
         "schema_version": CHECKPOINT_SCHEMA_VERSION,

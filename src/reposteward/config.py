@@ -282,7 +282,7 @@ def default_user_config_path() -> Path:
 def default_state_dir() -> Path:
     """Return the per-user runtime-state root without creating it."""
     if os.name == "nt" and os.environ.get("LOCALAPPDATA", "").strip():
-        return (Path(os.environ["LOCALAPPDATA"]).expanduser() / "RepoSteward").resolve()
+        return (Path(os.environ["LOCALAPPDATA"]).expanduser() / "StewardKit").resolve()
     base = os.environ.get("XDG_STATE_HOME", "").strip()
     root = Path(base).expanduser() if base else Path.home() / ".local" / "state"
     return (root / "reposteward").resolve()
@@ -291,7 +291,7 @@ def default_state_dir() -> Path:
 def default_workspace_dir() -> Path:
     """Return the per-user disposable-workspace root without creating it."""
     if os.name == "nt" and os.environ.get("LOCALAPPDATA", "").strip():
-        root = Path(os.environ["LOCALAPPDATA"]).expanduser() / "RepoSteward"
+        root = Path(os.environ["LOCALAPPDATA"]).expanduser() / "StewardKit"
     else:
         base = os.environ.get("XDG_DATA_HOME", "").strip()
         root = (
@@ -303,7 +303,7 @@ def default_workspace_dir() -> Path:
 
 
 def discover_project_config(start: Path | None = None) -> Path | None:
-    """Find the nearest RepoSteward project configuration."""
+    """Find the nearest StewardKit project configuration."""
     current = (start or Path.cwd()).expanduser().resolve()
     if current.is_file():
         current = current.parent

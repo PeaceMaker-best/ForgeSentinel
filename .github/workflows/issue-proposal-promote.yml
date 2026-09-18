@@ -45,7 +45,7 @@ jobs:
       ISSUE_PROJECT_OWNER_TYPE: ${{ vars.REPOSTEWARD_ISSUE_PROJECT_OWNER_TYPE }}
       REPOSTEWARD_ENABLE_ISSUE_PROMOTION: "1"
     steps:
-      - name: Check out trusted RepoSteward code
+      - name: Check out trusted StewardKit code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.event.repository.default_branch }}
@@ -57,12 +57,12 @@ jobs:
           version: "0.11.32"
           enable-cache: true
 
-      - name: Install Python and RepoSteward
+      - name: Install Python and StewardKit
         run: |
           uv python install 3.12
           uv sync --locked --python 3.12
 
-      - name: Isolate RepoSteward runtime state
+      - name: Isolate StewardKit runtime state
         run: |
           {
             echo "XDG_CONFIG_HOME=$RUNNER_TEMP/reposteward/config"

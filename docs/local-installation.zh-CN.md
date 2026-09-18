@@ -1,7 +1,7 @@
-# 从独立安装开始使用 RepoSteward
+# 从独立安装开始使用 StewardKit
 
-日常维护时可以直接打开目标项目。RepoSteward 的安装环境、用户配置、台账和目标
-工作区分别管理；开发 RepoSteward 本身时才需要进入它的源码 checkout。
+日常维护时可以直接打开目标项目。StewardKit 的安装环境、用户配置、台账和目标
+工作区分别管理；开发 StewardKit 本身时才需要进入它的源码 checkout。
 
 ## 固定安装来源
 

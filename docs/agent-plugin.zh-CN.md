@@ -1,6 +1,6 @@
 # 导出本机 Agent 插件
 
-RepoSteward 可以把一个已关联工作区的 MCP 连接和四类 skills 导出成 Codex
+StewardKit 可以把一个已关联工作区的 MCP 连接和四类 skills 导出成 Codex
 插件目录。CLI、MCP 和插件共用项目、任务与验证服务。导出不修改客户端设置、
 不联网安装插件，也不代表真实模型已经完成接续。
 

@@ -13,9 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ConfigTests(unittest.TestCase):
     def test_personal_example_keeps_existing_repository_policies(self) -> None:
-        config = load_config(ROOT / "examples" / "tiammomo.toml")
+        config = load_config(ROOT / "examples" / "PeaceMaker-best.toml")
 
-        self.assertEqual(config.github.login, "tiammomo")
+        self.assertEqual(config.github.login, "PeaceMaker-best")
         self.assertEqual(config.workspace_dir, config.state_dir / "workspaces")
         self.assertEqual(config.runner.max_output_chars, 12_000)
         self.assertEqual(config.runner.passed_output_chars, 2_000)

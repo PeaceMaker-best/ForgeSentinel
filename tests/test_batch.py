@@ -19,7 +19,7 @@ def _pull(number: int, files: list[str], *, draft: bool = False) -> dict:
     return {
         "number": number,
         "draft": draft,
-        "head_branch": f"tiammomo/change-{number}",
+        "head_branch": f"PeaceMaker-best/change-{number}",
         "head_sha": str(number) * 40,
         "base_branch": "main",
         "base_sha": "b" * 40,
@@ -36,7 +36,7 @@ def _run(number: int, *, status: str = "submitted") -> dict:
         "status": status,
         "submission_pr_url": f"https://github.com/owner/repo/pull/{number}",
         "details": {
-            "branch": f"tiammomo/change-{number}",
+            "branch": f"PeaceMaker-best/change-{number}",
             "base_branch": "main",
             "base_commit": "b" * 40,
             "commit_sha": str(number) * 40,
@@ -324,7 +324,7 @@ class BatchAdvanceTests(unittest.TestCase):
             "issue_number": 7,
             "status": "submitted",
             "details": {
-                "branch": "tiammomo/change",
+                "branch": "PeaceMaker-best/change",
                 "base_branch": "main",
                 "base_commit": "b" * 40,
                 "commit_sha": "a" * 40,
@@ -342,7 +342,7 @@ class BatchAdvanceTests(unittest.TestCase):
                     url="https://github.com/owner/repo/pull/7",
                     state="open",
                     draft=False,
-                    head_branch="tiammomo/change",
+                    head_branch="PeaceMaker-best/change",
                     head_sha="a" * 40,
                     base_branch="main",
                     base_sha="b" * 40,
@@ -420,7 +420,7 @@ class BatchAdvanceTests(unittest.TestCase):
             url="https://github.com/owner/repo/pull/7",
             state="open",
             draft=False,
-            head_branch="tiammomo/change",
+            head_branch="PeaceMaker-best/change",
             head_sha="f" * 40,
             base_branch="main",
             base_sha="b" * 40,
@@ -443,7 +443,7 @@ class BatchAdvanceTests(unittest.TestCase):
             url="https://github.com/owner/repo/pull/7",
             state="open",
             draft=False,
-            head_branch="tiammomo/change",
+            head_branch="PeaceMaker-best/change",
             head_sha="a" * 40,
             base_branch="main",
             base_sha="c" * 40,
@@ -529,7 +529,7 @@ class BatchReplayTests(unittest.TestCase):
         )
         self.git(worktree, "config", "user.name", "Test")
         self.git(worktree, "config", "user.email", "test@example.com")
-        self.git(worktree, "switch", "-c", "tiammomo/change")
+        self.git(worktree, "switch", "-c", "PeaceMaker-best/change")
         target = worktree / ("shared.txt" if conflict else "feature.txt")
         target.write_text("feature\n")
         self.git(worktree, "add", target.name)
@@ -555,7 +555,7 @@ class BatchReplayTests(unittest.TestCase):
                 "worktree": str(worktree),
                 "base_branch": "main",
                 "base_commit": old_base,
-                "branch": "tiammomo/change",
+                "branch": "PeaceMaker-best/change",
                 "commit_sha": head,
                 "agent_result": {
                     "summary": "change",
@@ -602,7 +602,7 @@ class BatchReplayTests(unittest.TestCase):
             result = pipeline._batch_replay(
                 source,
                 pull_number=7,
-                reviewed_by="tiammomo",
+                reviewed_by="PeaceMaker-best",
                 batch_plan_digest="d" * 64,
                 root_run_id="root-run",
                 planned_base_sha=old_base,
@@ -631,7 +631,7 @@ class BatchReplayTests(unittest.TestCase):
                 pipeline._batch_replay(
                     source,
                     pull_number=7,
-                    reviewed_by="tiammomo",
+                    reviewed_by="PeaceMaker-best",
                     batch_plan_digest="d" * 64,
                     root_run_id="root-run",
                     planned_base_sha=old_base,

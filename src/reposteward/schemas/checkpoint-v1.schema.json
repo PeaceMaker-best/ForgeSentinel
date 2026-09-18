@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:reposteward:schema:checkpoint:1",
-  "title": "RepoSteward Checkpoint v1",
+  "title": "StewardKit Checkpoint v1",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -81,7 +81,7 @@ class CodexSdkHarness:
             env=self._sdk_environment(),
             config_overrides=(SHELL_ENVIRONMENT_EXCLUDE,),
             client_name="reposteward",
-            client_title="RepoSteward",
+            client_title="StewardKit",
         )
         model = self.config.model or None
         thread = None

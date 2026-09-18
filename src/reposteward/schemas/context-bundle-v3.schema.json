@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:reposteward:schema:context-bundle:3",
-  "title": "RepoSteward Portable Context Bundle v3",
+  "title": "StewardKit Portable Context Bundle v3",
   "type": "object",
   "additionalProperties": false,
   "required": [

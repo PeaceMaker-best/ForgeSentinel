@@ -71,7 +71,7 @@ class HarnessCapabilitiesTests(unittest.TestCase):
         )
 
     def test_doctor_reports_the_adapter_manifest(self) -> None:
-        config = load_config(Path("examples/tiammomo.toml"), include_user=False)
+        config = load_config(Path("examples/PeaceMaker-best.toml"), include_user=False)
         completed = SimpleNamespace(returncode=0, stdout="ok", stderr="")
 
         with (
