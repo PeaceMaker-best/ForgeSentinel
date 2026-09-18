@@ -9,12 +9,12 @@ from unittest.mock import patch
 
 import test_external_verification
 
-from reposteward.cli import main
-from reposteward.config import load_config
-from reposteward.external_tasks import TaskConflict
-from reposteward.knowledge import ProjectKnowledge
-from reposteward.mcp_bridge import ScopedBridge
-from reposteward.policy import PolicyError
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
+from forgesentinel.external_tasks import TaskConflict
+from forgesentinel.knowledge import ProjectKnowledge
+from forgesentinel.mcp_bridge import ScopedBridge
+from forgesentinel.policy import PolicyError
 
 
 class KnowledgeTests(unittest.TestCase):
@@ -233,8 +233,8 @@ class KnowledgeTests(unittest.TestCase):
         self.promote(entry["id"])
         output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=self.config),
-            patch("reposteward.cli.Pipeline", side_effect=AssertionError("Pipeline")),
+            patch("forgesentinel.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.Pipeline", side_effect=AssertionError("Pipeline")),
             redirect_stdout(output),
         ):
             self.assertEqual(

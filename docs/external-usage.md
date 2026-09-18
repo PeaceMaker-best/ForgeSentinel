@@ -7,22 +7,22 @@ history, or save prompts, responses, tool arguments, or credentials.
 
 ## Collect and refresh
 
-Start a reviewed external task with `reposteward task start`, or use the `RUN_ID`
-from `reposteward adopt`. Select the local rollout file and the `turn_id` from
+Start a reviewed external task with `forgesentinel task start`, or use the `RUN_ID`
+from `forgesentinel adopt`. Select the local rollout file and the `turn_id` from
 its `turn_context` metadata. Select only turns devoted to this Issue. A turn
 mixing multiple tasks cannot be apportioned reliably and should be left unbound.
 
 ```bash
-reposteward usage collect RUN_ID \
+forgesentinel usage collect RUN_ID \
   --codex-session /path/to/selected-rollout.jsonl \
   --turn-id SELECTED_TURN_ID
 
 # Register more explicit turns using another --turn-id (or a later invocation).
 # Refresh all sources already bound to this WorkItem, without discovering others:
-reposteward usage collect RUN_ID
+forgesentinel usage collect RUN_ID
 
-reposteward usage external-report owner/repository --issue 123 --include-turns
-reposteward usage external-report owner/repository --group-by model
+forgesentinel usage external-report owner/repository --issue 123 --include-turns
+forgesentinel usage external-report owner/repository --group-by model
 ```
 
 Repeat collection at task checkpoints and after the selected turn completes.

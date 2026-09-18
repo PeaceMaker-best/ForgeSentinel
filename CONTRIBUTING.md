@@ -26,14 +26,14 @@ uv sync
 uv run python -m unittest discover -s tests -v
 uvx ruff check .
 uvx ruff format --check .
-uv run reposteward --help
+uv run forgesentinel --help
 uv build
 ```
 
 仅运行与改动相关的测试不足以替代完整检查。涉及容器验证链路时，还应构建并检查 Runner：
 
 ```bash
-uv run reposteward image build
+uv run forgesentinel image build
 ```
 
 ## 分支与提交
@@ -49,7 +49,7 @@ uv run reposteward image build
 - 提交不得包含 token、私钥、账号缓存、数据库、`.env`、运行日志或本机绝对路径。
 - 使用 Coding Harness 时，仍需由提交者检查完整 diff、测试结果和公开说明。
 
-仓库内的 `.agents/skills/reposteward-maintainer/SKILL.md` 提供从 Issue 审核、实现、验证到
+仓库内的 `.agents/skills/forgesentinel-maintainer/SKILL.md` 提供从 Issue 审核、实现、验证到
 CI/Reviewer 跟进的可复用流程，适用于不同 Coding Harness；它不会替代 ForgeSentinel 代码中的
 身份、凭据、摘要和公开写入门禁。
 

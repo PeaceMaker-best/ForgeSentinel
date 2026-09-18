@@ -26,19 +26,19 @@ GitHub 官方支持 Project Draft Issue 在线保存标题和正文，并在审�
 
 在运行 workflow 的仓库中配置：
 
-- `REPOSTEWARD_ISSUE_PROJECT_OWNER`：共享 Project 所属用户或组织；
-- `REPOSTEWARD_ISSUE_PROJECT_NUMBER`：Project 页面中的编号；
-- `REPOSTEWARD_ISSUE_PROJECT_OWNER_TYPE`：`user` 或 `organization`；
-- `REPOSTEWARD_PUBLISHER_LOGIN`：最终发布凭据所属的 GitHub login。
+- `FORGESENTINEL_ISSUE_PROJECT_OWNER`：共享 Project 所属用户或组织；
+- `FORGESENTINEL_ISSUE_PROJECT_NUMBER`：Project 页面中的编号；
+- `FORGESENTINEL_ISSUE_PROJECT_OWNER_TYPE`：`user` 或 `organization`；
+- `FORGESENTINEL_PUBLISHER_LOGIN`：最终发布凭据所属的 GitHub login。
 
 ### Secrets
 
-- `REPOSTEWARD_GITHUB_REVIEW_TOKEN`：只能读取共享 Project 和目标仓库 Issue；
-- `REPOSTEWARD_GITHUB_PUBLISH_TOKEN`：可以写共享 Project，并在目标仓库创建 Issue。
+- `FORGESENTINEL_GITHUB_REVIEW_TOKEN`：只能读取共享 Project 和目标仓库 Issue；
+- `FORGESENTINEL_GITHUB_PUBLISH_TOKEN`：可以写共享 Project，并在目标仓库创建 Issue。
 
 使用 classic PAT 时，review 凭据至少需要 `read:project`，publish 凭据需要 `project` 以及目标仓库
 Issue 写权限；私有仓库还需要相应的 `repo` 访问。实际权限应按 Project 所属用户或组织以及目标仓库
-收紧。发布 token 的实际 GitHub login 必须等于 `REPOSTEWARD_PUBLISHER_LOGIN`；当前版本的 promotion
+收紧。发布 token 的实际 GitHub login 必须等于 `FORGESENTINEL_PUBLISHER_LOGIN`；当前版本的 promotion
 因此使用用户 token，GitHub App 安装 token 需在后续引入可审计的 CI 身份协议后再支持。不要把 token
 交给 Harness、测试、目标仓库代码或容器。
 
@@ -46,8 +46,8 @@ Issue 写权限；私有仓库还需要相应的 `repo` 访问。实际权限应
 
 创建两个 GitHub Environments：
 
-- `reposteward-issue-review`：保护只读 Project token；
-- `reposteward-issue-publishing`：配置 required reviewers，并只允许受保护的默认分支部署。
+- `forgesentinel-issue-review`：保护只读 Project token；
+- `forgesentinel-issue-publishing`：配置 required reviewers，并只允许受保护的默认分支部署。
 
 ForgeSentinel 默认使用 `require_distinct_reviewer = true`。只有单维护者在可信用户配置中显式设为
 `false` 时，提案创建者才可以同时作为 `--reviewed-by`；项目级配置无法覆盖 `[issue_review]`。

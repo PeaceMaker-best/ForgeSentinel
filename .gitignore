@@ -5,9 +5,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .starfix/
-.reposteward/
-.reposteward.toml
-reposteward.local.toml
+.forgesentinel/
+.forgesentinel.toml
+forgesentinel.local.toml
 dist/
 build/
 *.egg-info/

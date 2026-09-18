@@ -13,15 +13,15 @@ ForgeSentinel 是位于 GitHub、Coding Harness 和隔离验证环境之间的�
 下文提到的自治管家属于路线图，不是当前版本已经提供的功能。
 
 <p align="center">
-  <img src="docs/assets/reposteward-lifecycle.svg" width="100%" alt="ForgeSentinel 工作流：经过审核的 GitHub Issue 进入无凭据 Coding 工作区，隔离验证生成证据，维护者检查结果，再通过独立门禁发布 Draft PR 并跟进 CI 与 Reviewer 反馈。">
+  <img src="docs/assets/forgesentinel-lifecycle.svg" width="100%" alt="ForgeSentinel 工作流：经过审核的 GitHub Issue 进入无凭据 Coding 工作区，隔离验证生成证据，维护者检查结果，再通过独立门禁发布 Draft PR 并跟进 CI 与 Reviewer 反馈。">
 </p>
 
-<p align="center"><sub>流程图提供可编辑的 <a href="docs/assets/reposteward-lifecycle.excalidraw">Excalidraw 源文件</a>。</sub></p>
+<p align="center"><sub>流程图提供可编辑的 <a href="docs/assets/forgesentinel-lifecycle.excalidraw">Excalidraw 源文件</a>。</sub></p>
 
 ## 先理解项目，再进入迭代
 
-对本地 clone 或 worktree 执行 `reposteward understand scan PATH`，再用
-`reposteward understand guide PATH` 阅读全貌，或用 `understand query PATH "符号或问题"`
+对本地 clone 或 worktree 执行 `forgesentinel understand scan PATH`，再用
+`forgesentinel understand guide PATH` 阅读全貌，或用 `understand query PATH "符号或问题"`
 定位相关实现与测试。导览区分文档声明、Python 静态关系和阅读建议，并提供带版本的代码来源。
 首次阅读无需关联任务或 GitHub 登录。详见[项目理解与上手指南](docs/project-understanding.zh-CN.md)。
 
@@ -66,9 +66,9 @@ PR 为目标。
 已有 Codex 工作流可使用[本机插件导出](docs/agent-plugin.zh-CN.md)，
 在明确绑定的项目中读取代码导览、接续任务、验证改动与跟进 PR。
 
-运行 `reposteward web` 打开[本地只读工作台](docs/local-workbench.zh-CN.md)，集中查看
+运行 `forgesentinel web` 打开[本地只读工作台](docs/local-workbench.zh-CN.md)，集中查看
 跨项目待办、代码导览、任务接续、审阅依据与设置诊断。
-`reposteward version` 显示安装信息；`reposteward doctor --local` 可检查配置来源与数据库
+`forgesentinel version` 显示安装信息；`forgesentinel doctor --local` 可检查配置来源与数据库
 兼容性，无需认证，也不会触发迁移。
 
 ForgeSentinel 要求 Python 3.12+、uv、Git、Docker、GitHub CLI，以及已登录的 Codex CLI。
@@ -77,37 +77,37 @@ ForgeSentinel 要求 Python 3.12+、uv、Git、Docker、GitHub CLI，以及已�
 git clone https://github.com/PeaceMaker-best/ForgeSentinel.git
 cd ForgeSentinel
 uv sync
-uv run reposteward init
-uv run reposteward --help
+uv run forgesentinel init
+uv run forgesentinel --help
 ```
 
 `init` 从当前 `gh auth` 和 Git 配置读取身份，然后把用户拥有的设置写入
-`~/.config/reposteward/config.toml`。该文件不保存 GitHub token。
+`~/.config/forgesentinel/config.toml`。该文件不保存 GitHub token。
 
 以 Maintainer 模式添加仓库：
 
 ```bash
 cd /path/to/repository
-uv run reposteward repo add owner/repository --mode maintainer
+uv run forgesentinel repo add owner/repository --mode maintainer
 ```
 
-命令创建本机专用的 `.reposteward.toml`，并通过 `.git/info/exclude` 排除它。填写该仓库允许的
+命令创建本机专用的 `.forgesentinel.toml`，并通过 `.git/info/exclude` 排除它。填写该仓库允许的
 依赖安装和验证命令，然后构建验证镜像并检查环境：
 
 ```bash
-uv run reposteward image build
-uv run reposteward doctor
+uv run forgesentinel image build
+uv run forgesentinel doctor
 ```
 
-完整设置见[配置示例](reposteward.example.toml)和[中文操作手册](docs/operator-guide.zh-CN.md)。
+完整设置见[配置示例](forgesentinel.example.toml)和[中文操作手册](docs/operator-guide.zh-CN.md)。
 
 ## 准备第一个经过审核的修改
 
 从你维护的仓库中一个已经审核的开放 Issue 开始：
 
 ```bash
-uv run reposteward gate owner/repository 123
-uv run reposteward prepare owner/repository 123
+uv run forgesentinel gate owner/repository 123
+uv run forgesentinel prepare owner/repository 123
 ```
 
 `prepare` 从最新默认分支创建隔离工作区，调用配置的 Harness，执行允许的验证命令，检查 diff，
@@ -116,15 +116,15 @@ uv run reposteward prepare owner/repository 123
 先检查结果，不执行发布：
 
 ```bash
-uv run reposteward inspect RUN_ID
-uv run reposteward logs RUN_ID
+uv run forgesentinel inspect RUN_ID
+uv run forgesentinel logs RUN_ID
 ```
 
 检查精确 diff 和证据后，通过独立命令发布：
 
 ```bash
-REPOSTEWARD_ENABLE_SUBMIT=1 \
-  uv run reposteward submit owner/repository 123 \
+FORGESENTINEL_ENABLE_SUBMIT=1 \
+  uv run forgesentinel submit owner/repository 123 \
   --reviewed-by your-github-login
 ```
 
@@ -134,9 +134,9 @@ REPOSTEWARD_ENABLE_SUBMIT=1 \
 发布后可以继续跟进：
 
 ```bash
-uv run reposteward follow-up RUN_ID
-uv run reposteward repair RUN_ID
-uv run reposteward merge-decision RUN_ID
+uv run forgesentinel follow-up RUN_ID
+uv run forgesentinel repair RUN_ID
+uv run forgesentinel merge-decision RUN_ID
 ```
 
 `follow-up` 只摄取发生变化的 GitHub 事实。`repair` 在反馈确实需要修改代码时准备新的验证
@@ -147,14 +147,14 @@ commit。`merge-decision` 保存确定性的资格判断，但不执行合并。
 ForgeSentinel 还提供以只读为主的仓库级视图：
 
 ```bash
-uv run reposteward inbox --repo owner/repository --format text
-uv run reposteward portfolio inspect owner/repository --format text
-uv run reposteward portfolio plan owner/repository --format text
-uv run reposteward batch plan owner/repository --format text
-uv run reposteward trace owner/repository 123 --format text
-uv run reposteward usage report owner/repository
-uv run reposteward storage stats --repo owner/repository
-uv run reposteward benchmark run --output .artifacts/benchmark.json
+uv run forgesentinel inbox --repo owner/repository --format text
+uv run forgesentinel portfolio inspect owner/repository --format text
+uv run forgesentinel portfolio plan owner/repository --format text
+uv run forgesentinel batch plan owner/repository --format text
+uv run forgesentinel trace owner/repository 123 --format text
+uv run forgesentinel usage report owner/repository
+uv run forgesentinel storage stats --repo owner/repository
+uv run forgesentinel benchmark run --output .artifacts/benchmark.json
 ```
 
 持久队列和 Batch Planner 只保存有界的控制面意图。它们不能自行开启 submit、Owner Attestation
@@ -183,9 +183,9 @@ GitHub 写入使用配置的维护者身份。ForgeSentinel 在本地审计状�
 会话可以加速恢复，但不是任务事实的唯一来源。
 
 ```bash
-uv run reposteward context inspect RUN_ID
-uv run reposteward context export RUN_ID --output handoff.json
-uv run reposteward context import handoff.json
+uv run forgesentinel context inspect RUN_ID
+uv run forgesentinel context export RUN_ID --output handoff.json
+uv run forgesentinel context import handoff.json
 ```
 
 交接包包含摘要和有界任务事实，不包含账号凭据。导入内容仍按不可信输入处理。
@@ -214,7 +214,7 @@ uv run reposteward context import handoff.json
 | 详细命令和操作流程 | [中文操作手册](docs/operator-guide.zh-CN.md) |
 | 组件、持久化和 Harness 契约 | [架构文档](docs/architecture.md) |
 | 使用 GitHub Actions 审核 Project Draft | [GitHub Actions](docs/github-actions.md) |
-| 完整项目配置 | [TOML 示例](reposteward.example.toml) |
+| 完整项目配置 | [TOML 示例](forgesentinel.example.toml) |
 | 贡献流程 | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | 私下报告安全问题 | [SECURITY.md](SECURITY.md) |
 | 长期定位决策 | [RFC #70](https://github.com/PeaceMaker-best/ForgeSentinel/issues/70) |
@@ -233,8 +233,8 @@ uv sync
 uv run python -m unittest discover -s tests -v
 uvx ruff check .
 uvx ruff format --check .
-uv run reposteward --help
-uv run reposteward benchmark run
+uv run forgesentinel --help
+uv run forgesentinel benchmark run
 uv build
 ```
 

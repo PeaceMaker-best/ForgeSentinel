@@ -10,10 +10,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import Mock, patch
 
-from reposteward.cli import main
-from reposteward.config import load_config
-from reposteward.runtime import inspect_database, installation_info, local_diagnostics
-from reposteward.store import SCHEMA_VERSION, Store
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
+from forgesentinel.runtime import inspect_database, installation_info, local_diagnostics
+from forgesentinel.store import SCHEMA_VERSION, Store
 
 
 class RuntimeTests(unittest.TestCase):
@@ -33,11 +33,11 @@ class RuntimeTests(unittest.TestCase):
             with (
                 patch("subprocess.run", side_effect=AssertionError("no processes")),
                 patch(
-                    "reposteward.store.Store.__init__",
+                    "forgesentinel.store.Store.__init__",
                     side_effect=AssertionError("no Store"),
                 ),
                 patch(
-                    "reposteward.github.resolve_token",
+                    "forgesentinel.github.resolve_token",
                     side_effect=AssertionError("no credentials"),
                 ),
             ):
@@ -61,7 +61,7 @@ class RuntimeTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             config = self.config(root)
-            path = config.state_dir / "reposteward.sqlite3"
+            path = config.state_dir / "forgesentinel.sqlite3"
             Store(path)
             for version, expected in (
                 (SCHEMA_VERSION, "compatible"),
@@ -119,7 +119,7 @@ class RuntimeTests(unittest.TestCase):
                 writer.commit()
                 before = {p.name: p.read_bytes() for p in path.parent.iterdir()}
                 with patch(
-                    "reposteward.runtime.sqlite3.connect",
+                    "forgesentinel.runtime.sqlite3.connect",
                     side_effect=AssertionError("no stale immutable read"),
                 ):
                     result = inspect_database(path, supported=22, required_tables=())
@@ -203,20 +203,20 @@ class RuntimeTests(unittest.TestCase):
             }
         )
         with patch(
-            "reposteward.runtime.metadata.distribution", return_value=distribution
+            "forgesentinel.runtime.metadata.distribution", return_value=distribution
         ):
             report = installation_info()
         self.assertEqual(report["source_revision"], "a" * 40)
         self.assertNotIn("SECRET", json.dumps(report))
         with patch(
-            "reposteward.runtime.metadata.distribution",
+            "forgesentinel.runtime.metadata.distribution",
             side_effect=metadata.PackageNotFoundError,
         ):
             self.assertFalse(installation_info()["metadata_available"])
 
     def test_version_cli_needs_no_config_and_local_doctor_handles_missing_config(self):
         with patch(
-            "reposteward.cli.load_config", side_effect=AssertionError("no config")
+            "forgesentinel.cli.load_config", side_effect=AssertionError("no config")
         ):
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(main(["version"]), 0)
@@ -227,11 +227,11 @@ class RuntimeTests(unittest.TestCase):
             ):
                 main(["--version"])
             self.assertEqual(stopped.exception.code, 0)
-            self.assertTrue(output.getvalue().startswith("reposteward "))
+            self.assertTrue(output.getvalue().startswith("forgesentinel "))
         with (
             TemporaryDirectory() as directory,
             patch(
-                "reposteward.config.default_user_config_path",
+                "forgesentinel.config.default_user_config_path",
                 return_value=Path(directory) / "user.toml",
             ),
         ):
@@ -256,9 +256,9 @@ class RuntimeTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             config = self.config(Path(directory))
             with (
-                patch("reposteward.cli.load_config", return_value=config),
+                patch("forgesentinel.cli.load_config", return_value=config),
                 patch(
-                    "reposteward.cli.run_doctor", return_value=({"tools": {}}, True)
+                    "forgesentinel.cli.run_doctor", return_value=({"tools": {}}, True)
                 ) as doctor,
             ):
                 with redirect_stdout(io.StringIO()):

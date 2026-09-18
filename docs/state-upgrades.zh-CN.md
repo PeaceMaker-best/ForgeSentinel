@@ -4,9 +4,9 @@
 和队列写入者正常退出，再确认安装与实际状态目录：
 
 ```bash
-reposteward version
-reposteward doctor --local --expect-state-dir /absolute/path/to/state
-reposteward state plan --expect-state-dir /absolute/path/to/state
+forgesentinel version
+forgesentinel doctor --local --expect-state-dir /absolute/path/to/state
+forgesentinel state plan --expect-state-dir /absolute/path/to/state
 ```
 
 `plan` 不创建缺失数据库，不初始化 Store，不认证 GitHub。输出当前/目标 schema、
@@ -17,14 +17,14 @@ reposteward state plan --expect-state-dir /absolute/path/to/state
 检查计划后，将输出中的精确摘要传给独立升级命令：
 
 ```bash
-reposteward state upgrade --expect-state-dir /absolute/path/to/state --plan-digest REVIEWED_DIGEST
+forgesentinel state upgrade --expect-state-dir /absolute/path/to/state --plan-digest REVIEWED_DIGEST
 ```
 
 作用域、文件内容或身份、迁移语句、版本与活动租约变化会使计划不可用。执行时再次
 取得写锁并核对计划；锁保护数据库写入，不代替停止长期客户端的操作。旧客户端可能
 已加载旧数据模型，不应在升级后继续运行。
 
-备份保存在该状态目录的 `backups/唯一ID/`，包含一致性的 `reposteward.sqlite3` 和
+备份保存在该状态目录的 `backups/唯一ID/`，包含一致性的 `forgesentinel.sqlite3` 和
 `manifest.json`。备份使用 SQLite backup API，在持有写锁期间通过独立只读连接复制，
 核验完整性与 SHA256 后才开始迁移。迁移复用现有 Store 语句和兼容处理，在单个事务
 内完成；中途失败回滚所有尚未提交版本。原 Store 写入口的兼容行为保持不变。
@@ -36,8 +36,8 @@ reposteward state upgrade --expect-state-dir /absolute/path/to/state --plan-dige
 ## 查询结果与演练恢复
 
 ```bash
-reposteward state inspect-backup /absolute/path/to/state/backups/ID
-reposteward state plan --expect-state-dir /absolute/path/to/state
+forgesentinel state inspect-backup /absolute/path/to/state/backups/ID
+forgesentinel state plan --expect-state-dir /absolute/path/to/state
 ```
 
 `inspect-backup` 核对格式、内容摘要、原 schema 和 SQLite 完整性，不修改日常状态。

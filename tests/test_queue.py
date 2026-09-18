@@ -11,10 +11,10 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from reposteward.config import RepositoryPolicy
-from reposteward.pipeline import BatchConflictError, BatchDeferred, Pipeline
-from reposteward.policy import PolicyError
-from reposteward.store import SCHEMA_VERSION, QueueLease, Store, StoreError
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.pipeline import BatchConflictError, BatchDeferred, Pipeline
+from forgesentinel.policy import PolicyError
+from forgesentinel.store import SCHEMA_VERSION, QueueLease, Store, StoreError
 
 
 class QueueStoreTests(unittest.TestCase):
@@ -370,7 +370,7 @@ class QueuePipelineTests(unittest.TestCase):
 
         with self.assertRaisesRegex(PolicyError, "queue apply is disabled"):
             self.pipeline.apply_queue(worker="worker")
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_QUEUE_APPLY": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_QUEUE_APPLY": "1"}):
             result = self.pipeline.apply_queue(worker="worker")
 
         self.pipeline.prepare.assert_called_once_with("owner/repo", 41)
@@ -387,7 +387,7 @@ class QueuePipelineTests(unittest.TestCase):
         )["task"]
         self.pipeline.prepare = Mock(side_effect=PolicyError("not approved"))
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_QUEUE_APPLY": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_QUEUE_APPLY": "1"}):
             result = self.pipeline.apply_queue(worker="worker")
 
         self.assertEqual(result["outcomes"][0]["error_code"], "policy_blocked")
@@ -419,7 +419,7 @@ class QueuePipelineTests(unittest.TestCase):
             side_effect=BatchDeferred("wait for CI", public_write=True)
         )
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_QUEUE_APPLY": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_QUEUE_APPLY": "1"}):
             result = self.pipeline.apply_queue(worker="worker")
 
         self.assertEqual(result["outcomes"][0]["error_code"], "batch_waiting")

@@ -9,10 +9,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from reposteward.batch import build_batch_plan, render_batch_plan_text
-from reposteward.github import PullRequest
-from reposteward.pipeline import BatchConflictError, BatchDeferred, Pipeline
-from reposteward.policy import PolicyError
+from forgesentinel.batch import build_batch_plan, render_batch_plan_text
+from forgesentinel.github import PullRequest
+from forgesentinel.pipeline import BatchConflictError, BatchDeferred, Pipeline
+from forgesentinel.policy import PolicyError
 
 
 def _pull(number: int, files: list[str], *, draft: bool = False) -> dict:
@@ -278,7 +278,7 @@ class BatchApplyTests(unittest.TestCase):
         ]
 
         with unittest.mock.patch.dict(
-            os.environ, {"REPOSTEWARD_ENABLE_BATCH_APPLY": "1"}
+            os.environ, {"FORGESENTINEL_ENABLE_BATCH_APPLY": "1"}
         ):
             result = self.pipeline.batch_apply(
                 "owner/repo", expected_digest=digest, reviewed_by="alice"
@@ -305,7 +305,7 @@ class BatchApplyTests(unittest.TestCase):
 
         with (
             unittest.mock.patch.dict(
-                os.environ, {"REPOSTEWARD_ENABLE_BATCH_APPLY": "1"}
+                os.environ, {"FORGESENTINEL_ENABLE_BATCH_APPLY": "1"}
             ),
             self.assertRaisesRegex(PolicyError, "stale"),
         ):
@@ -387,7 +387,7 @@ class BatchAdvanceTests(unittest.TestCase):
 
         with (
             unittest.mock.patch.dict(
-                os.environ, {"REPOSTEWARD_ENABLE_BATCH_APPLY": "1"}
+                os.environ, {"FORGESENTINEL_ENABLE_BATCH_APPLY": "1"}
             ),
             self.assertRaises(BatchDeferred),
         ):
@@ -400,7 +400,7 @@ class BatchAdvanceTests(unittest.TestCase):
         pipeline = self.pipeline(("review_not_approved",))
 
         with unittest.mock.patch.dict(
-            os.environ, {"REPOSTEWARD_ENABLE_BATCH_APPLY": "1"}
+            os.environ, {"FORGESENTINEL_ENABLE_BATCH_APPLY": "1"}
         ):
             result = self.advance(pipeline)
 
@@ -428,7 +428,7 @@ class BatchAdvanceTests(unittest.TestCase):
 
         with (
             unittest.mock.patch.dict(
-                os.environ, {"REPOSTEWARD_ENABLE_BATCH_APPLY": "1"}
+                os.environ, {"FORGESENTINEL_ENABLE_BATCH_APPLY": "1"}
             ),
             self.assertRaisesRegex(PolicyError, "head changed after planning"),
         ):
@@ -452,7 +452,7 @@ class BatchAdvanceTests(unittest.TestCase):
 
         with (
             unittest.mock.patch.dict(
-                os.environ, {"REPOSTEWARD_ENABLE_BATCH_APPLY": "1"}
+                os.environ, {"FORGESENTINEL_ENABLE_BATCH_APPLY": "1"}
             ),
             self.assertRaises(BatchDeferred),
         ):

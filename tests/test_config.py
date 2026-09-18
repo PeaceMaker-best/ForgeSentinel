@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from reposteward.config import ConfigError, load_config
+from forgesentinel.config import ConfigError, load_config
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -98,7 +98,7 @@ class ConfigTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             user = root / "user.toml"
-            project = root / "project" / ".reposteward.toml"
+            project = root / "project" / ".forgesentinel.toml"
             project.parent.mkdir()
             user.write_text(
                 """config_version = 1
@@ -188,13 +188,13 @@ event_payload_retention_days = 45
         self.assertIn(".github/workflows/", config.safety.forbidden_paths)
         self.assertEqual(
             config.state_dir,
-            root / "user-state" / "reposteward" / "api.github.com" / "alice",
+            root / "user-state" / "forgesentinel" / "api.github.com" / "alice",
         )
         self.assertEqual(
             config.workspace_dir,
             root
             / "user-data"
-            / "reposteward"
+            / "forgesentinel"
             / "workspaces"
             / "api.github.com"
             / "alice",
@@ -552,7 +552,7 @@ image = "untrusted-runner:latest"
 
         self.assertEqual(config.agent.harness, "codex-cli")
         self.assertEqual(config.agent.executable, "codex")
-        self.assertEqual(config.runner.image, "reposteward-runner:latest")
+        self.assertEqual(config.runner.image, "forgesentinel-runner:latest")
 
     def test_user_config_owns_the_shared_issue_review_project(self) -> None:
         with TemporaryDirectory() as directory:

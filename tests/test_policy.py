@@ -4,17 +4,17 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from reposteward.config import RepositoryPolicy, load_config
-from reposteward.models import AgentResult, VerificationResult
-from reposteward.pipeline import Pipeline
-from reposteward.policy import (
+from forgesentinel.config import RepositoryPolicy, load_config
+from forgesentinel.models import AgentResult, VerificationResult
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import (
     DiffSummary,
     PolicyError,
     conventional_scope,
     enforce_change_policy,
 )
-from reposteward.verifier import DockerVerifier, VerificationError
-from reposteward.workspace import sanitized_environment, slugify
+from forgesentinel.verifier import DockerVerifier, VerificationError
+from forgesentinel.workspace import sanitized_environment, slugify
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -103,10 +103,10 @@ class PolicyTests(unittest.TestCase):
 
         with (
             patch(
-                "reposteward.policy.subprocess.run", return_value=successful_diff_check
+                "forgesentinel.policy.subprocess.run", return_value=successful_diff_check
             ),
             patch(
-                "reposteward.policy.summarize_diff",
+                "forgesentinel.policy.summarize_diff",
                 return_value=DiffSummary(tuple(f"file-{i}" for i in range(41)), 1, 0),
             ),
             self.assertRaisesRegex(PolicyError, "policy limit is 40"),
@@ -115,10 +115,10 @@ class PolicyTests(unittest.TestCase):
 
         with (
             patch(
-                "reposteward.policy.subprocess.run", return_value=successful_diff_check
+                "forgesentinel.policy.subprocess.run", return_value=successful_diff_check
             ),
             patch(
-                "reposteward.policy.summarize_diff",
+                "forgesentinel.policy.summarize_diff",
                 return_value=DiffSummary(("file",), 2_001, 0),
             ),
             self.assertRaisesRegex(PolicyError, "policy limit is 2000"),
@@ -136,9 +136,9 @@ class PolicyTests(unittest.TestCase):
 
         with (
             patch(
-                "reposteward.policy.subprocess.run", return_value=successful_diff_check
+                "forgesentinel.policy.subprocess.run", return_value=successful_diff_check
             ),
-            patch("reposteward.policy.summarize_diff", return_value=summary),
+            patch("forgesentinel.policy.summarize_diff", return_value=summary),
         ):
             accepted = enforce_change_policy(
                 Path("."), verification, repository, self.config

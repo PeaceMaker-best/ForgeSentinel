@@ -9,14 +9,14 @@ from pathlib import Path
 from unittest.mock import patch
 from uuid import UUID
 
-from reposteward.lifecycle import (
+from forgesentinel.lifecycle import (
     MAX_TEXT_CHARS,
     SOURCE_ORDER,
     LifecycleTraceError,
     build_lifecycle_trace,
     render_lifecycle_text,
 )
-from reposteward.store import Store
+from forgesentinel.store import Store
 
 
 def _digest(value: object) -> str:
@@ -32,7 +32,7 @@ def _dump(path: Path) -> str:
 
 
 def _seed_lifecycle(state_dir: Path) -> tuple[Path, str, str]:
-    database = state_dir / "reposteward.sqlite3"
+    database = state_dir / "forgesentinel.sqlite3"
     store = Store(database)
     work_item = store.ensure_work_item(
         "owner/repo",
@@ -424,7 +424,7 @@ class LifecycleTraceTests(unittest.TestCase):
     def test_missing_relationships_and_global_limit_are_explicit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory)
-            store = Store(state_dir / "reposteward.sqlite3")
+            store = Store(state_dir / "forgesentinel.sqlite3")
             store.ensure_work_item(
                 "owner/repo",
                 kind="github_issue",
@@ -432,9 +432,9 @@ class LifecycleTraceTests(unittest.TestCase):
                 title="Missing relationships",
             )
             with (
-                patch("reposteward.store.utc_now", return_value="2026-01-01T00:00:00Z"),
+                patch("forgesentinel.store.utc_now", return_value="2026-01-01T00:00:00Z"),
                 patch(
-                    "reposteward.store.uuid.uuid4",
+                    "forgesentinel.store.uuid.uuid4",
                     side_effect=[UUID(int=n) for n in (3, 2, 1)],
                 ),
             ):
@@ -461,7 +461,7 @@ class LifecycleTraceTests(unittest.TestCase):
     def test_legacy_run_does_not_include_other_issues_queue_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory)
-            store = Store(state_dir / "reposteward.sqlite3")
+            store = Store(state_dir / "forgesentinel.sqlite3")
             store.start_run("owner/repo", 7, "agent")
             store.enqueue_queue_task(
                 "owner/repo", action="prepare", enqueued_by="alice", issue_number=8
@@ -469,7 +469,7 @@ class LifecycleTraceTests(unittest.TestCase):
             own_task = store.enqueue_queue_task(
                 "owner/repo", action="prepare", enqueued_by="alice", issue_number=7
             )
-            with sqlite3.connect(state_dir / "reposteward.sqlite3") as connection:
+            with sqlite3.connect(state_dir / "forgesentinel.sqlite3") as connection:
                 connection.execute("UPDATE queue_tasks SET work_item_id=''")
 
             trace = build_lifecycle_trace(state_dir, "owner/repo", 7)
@@ -572,7 +572,7 @@ class LifecycleTraceTests(unittest.TestCase):
     def test_no_local_work_item_or_run_is_an_error(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory)
-            Store(state_dir / "reposteward.sqlite3")
+            Store(state_dir / "forgesentinel.sqlite3")
 
             with self.assertRaisesRegex(KeyError, "no local lifecycle facts"):
                 build_lifecycle_trace(state_dir, "owner/repo", 404)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from reposteward.context_budget import (
+from forgesentinel.context_budget import (
     ContextBudgetError,
     build_follow_up_context,
     estimate_tokens,

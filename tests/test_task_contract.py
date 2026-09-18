@@ -7,13 +7,13 @@ from pathlib import Path
 
 from test_context import _candidate
 
-from reposteward.agent import build_harness_prompt
-from reposteward.config import RepositoryPolicy
-from reposteward.context import build_context_pack
-from reposteward.context_budget import ContextBudgetError, estimate_tokens
-from reposteward.prompt_budget import fit_context
-from reposteward.protocol import ProtocolValidationError, validate_context_pack
-from reposteward.task_contract import digest, issue_digest, review_contract
+from forgesentinel.agent import build_harness_prompt
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.context import build_context_pack
+from forgesentinel.context_budget import ContextBudgetError, estimate_tokens
+from forgesentinel.prompt_budget import fit_context
+from forgesentinel.protocol import ProtocolValidationError, validate_context_pack
+from forgesentinel.task_contract import digest, issue_digest, review_contract
 
 
 class TaskContractTests(unittest.TestCase):
@@ -148,7 +148,7 @@ class TaskContractTests(unittest.TestCase):
             )
         )
         source = next(
-            value for value in pack.sources if value.kind == "reposteward_checkpoint"
+            value for value in pack.sources if value.kind == "forgesentinel_checkpoint"
         )
         self.assertEqual(source.digest, digest(checkpoint))
 

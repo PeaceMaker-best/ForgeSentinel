@@ -8,18 +8,18 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from reposteward.branch_cleanup import (
+from forgesentinel.branch_cleanup import (
     build_branch_cleanup_plan,
     fresh_candidate_blockers,
     render_branch_cleanup_text,
 )
-from reposteward.config import RepositoryPolicy, load_config
-from reposteward.github import GitHubError, PullRequest
-from reposteward.models import RepositoryInfo
-from reposteward.pipeline import Pipeline
-from reposteward.policy import PolicyError
-from reposteward.store import SCHEMA_VERSION, Store
-from reposteward.workspace import WorkspaceError, WorkspaceManager
+from forgesentinel.config import RepositoryPolicy, load_config
+from forgesentinel.github import GitHubError, PullRequest
+from forgesentinel.models import RepositoryInfo
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import PolicyError
+from forgesentinel.store import SCHEMA_VERSION, Store
+from forgesentinel.workspace import WorkspaceError, WorkspaceManager
 
 ROOT = Path(__file__).parents[1]
 
@@ -403,7 +403,7 @@ class BranchCleanupPipelineTests(unittest.TestCase):
 
     def _apply(self, digest: str, *, reviewed_by: str = "owner") -> dict:
         with patch.dict(
-            "os.environ", {"REPOSTEWARD_ENABLE_BRANCH_CLEANUP": "1"}, clear=False
+            "os.environ", {"FORGESENTINEL_ENABLE_BRANCH_CLEANUP": "1"}, clear=False
         ):
             return self.pipeline.apply_branch_cleanup(
                 "owner/repo", expected_digest=digest, reviewed_by=reviewed_by
@@ -518,7 +518,7 @@ class BranchCleanupPipelineTests(unittest.TestCase):
         with (
             patch.dict(
                 "os.environ",
-                {"REPOSTEWARD_ENABLE_BRANCH_CLEANUP": "1"},
+                {"FORGESENTINEL_ENABLE_BRANCH_CLEANUP": "1"},
                 clear=False,
             ),
             self.assertRaisesRegex(PolicyError, "reviewed-by"),
@@ -536,7 +536,7 @@ class NativeDeleteTests(unittest.TestCase):
         completed = subprocess.CompletedProcess([], 0, stdout="", stderr="")
         with (
             patch(
-                "reposteward.workspace.subprocess.run", return_value=completed
+                "forgesentinel.workspace.subprocess.run", return_value=completed
             ) as run,
             patch.dict("os.environ", {"GH_TOKEN": "secret"}),
         ):

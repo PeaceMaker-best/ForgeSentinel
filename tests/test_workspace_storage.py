@@ -8,10 +8,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from reposteward import workspace_storage
-from reposteward.config import RepositoryPolicy, StorageConfig
-from reposteward.pipeline import Pipeline
-from reposteward.workspace_storage import (
+from forgesentinel import workspace_storage
+from forgesentinel.config import RepositoryPolicy, StorageConfig
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.workspace_storage import (
     delete_workspace,
     scan_workspaces,
     workspace_gc_inventory,
@@ -127,7 +127,7 @@ class WorkspaceStorageTests(unittest.TestCase):
             workspace, head = create_workspace(root)
 
             with patch(
-                "reposteward.workspace_storage._git", wraps=workspace_storage._git
+                "forgesentinel.workspace_storage._git", wraps=workspace_storage._git
             ) as git_command:
                 result = workspace_gc_inventory(
                     root,
@@ -296,7 +296,7 @@ class WorkspaceGcPipelineTests(unittest.TestCase):
             pipeline.store = store
 
             plan = pipeline.storage_gc(repository="owner/repo")
-            with patch.dict("os.environ", {"REPOSTEWARD_ENABLE_GC": "1"}):
+            with patch.dict("os.environ", {"FORGESENTINEL_ENABLE_GC": "1"}):
                 applied = pipeline.storage_gc(repository="owner/repo", apply=True)
 
             workspace_exists = workspace.exists()

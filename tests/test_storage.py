@@ -7,9 +7,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from reposteward.config import RepositoryPolicy, StorageConfig
-from reposteward.pipeline import Pipeline
-from reposteward.policy import PolicyError
+from forgesentinel.config import RepositoryPolicy, StorageConfig
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import PolicyError
 
 
 class StubStore:
@@ -163,7 +163,7 @@ class StorageGcTests(unittest.TestCase):
                 pipeline.storage_gc(repository="owner/repo", apply=True)
             self.assertTrue(log.exists())
 
-            with patch.dict("os.environ", {"REPOSTEWARD_ENABLE_GC": "1"}):
+            with patch.dict("os.environ", {"FORGESENTINEL_ENABLE_GC": "1"}):
                 result = pipeline.storage_gc(repository="owner/repo", apply=True)
 
             self.assertFalse(log.exists())

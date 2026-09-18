@@ -5,15 +5,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from reposteward.config import RepositoryPolicy
-from reposteward.context import (
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.context import (
     build_context_pack,
     failed_checkpoint,
     portable_bundle,
     ready_checkpoint,
     running_checkpoint,
 )
-from reposteward.models import (
+from forgesentinel.models import (
     AgentDecision,
     AgentResult,
     Candidate,
@@ -21,7 +21,7 @@ from reposteward.models import (
     RepositoryInfo,
     VerificationResult,
 )
-from reposteward.protocol import (
+from forgesentinel.protocol import (
     ProtocolValidationError,
     read_context_bundle,
     schema_document,
@@ -86,7 +86,7 @@ class ProtocolSchemaTests(unittest.TestCase):
             self.assertEqual(
                 schema["$schema"], "https://json-schema.org/draft/2020-12/schema"
             )
-            self.assertTrue(str(schema["$id"]).startswith("urn:reposteward:schema:"))
+            self.assertTrue(str(schema["$id"]).startswith("urn:forgesentinel:schema:"))
             self.assertTrue(str(schema["$id"]).endswith(f":{version}"))
         self.assertTrue(schema_document("context-pack", 1)["$id"].endswith(":1"))
 

@@ -7,19 +7,19 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from reposteward.agent import build_harness_prompt
-from reposteward.config import RepositoryPolicy
-from reposteward.context import repository_policy_digest
-from reposteward.context_budget import estimate_tokens
-from reposteward.models import (
+from forgesentinel.agent import build_harness_prompt
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.context import repository_policy_digest
+from forgesentinel.context_budget import estimate_tokens
+from forgesentinel.models import (
     AgentExecution,
     AgentMetrics,
     AgentResult,
     VerificationResult,
 )
-from reposteward.pipeline import Pipeline, _canonical_digest, _repair_feedback
-from reposteward.policy import DiffSummary, PolicyError
-from reposteward.store import RunLease
+from forgesentinel.pipeline import Pipeline, _canonical_digest, _repair_feedback
+from forgesentinel.policy import DiffSummary, PolicyError
+from forgesentinel.store import RunLease
 
 
 def _lease_aware_store(store: Mock) -> Mock:
@@ -197,7 +197,7 @@ class RepairTests(unittest.TestCase):
             completed = SimpleNamespace(returncode=0, stdout="bounded diff")
 
             with patch(
-                "reposteward.pipeline.subprocess.run", return_value=completed
+                "forgesentinel.pipeline.subprocess.run", return_value=completed
             ) as run:
                 snippets = Pipeline._follow_up_diff_snippets(details, events)
 
@@ -292,11 +292,11 @@ class RepairTests(unittest.TestCase):
             with (
                 patch.object(Pipeline, "_revision", return_value=parent),
                 patch(
-                    "reposteward.pipeline.subprocess.run",
+                    "forgesentinel.pipeline.subprocess.run",
                     return_value=SimpleNamespace(stdout=""),
                 ),
                 patch(
-                    "reposteward.pipeline.enforce_change_policy",
+                    "forgesentinel.pipeline.enforce_change_policy",
                     return_value=DiffSummary(("src/example.py",), 1, 1),
                 ),
             ):

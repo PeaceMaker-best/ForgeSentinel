@@ -7,8 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from reposteward.config import ConfigError, load_config
-from reposteward.setup import add_repository, initialize_user_config
+from forgesentinel.config import ConfigError, load_config
+from forgesentinel.setup import add_repository, initialize_user_config
 
 
 class SetupTests(unittest.TestCase):
@@ -47,11 +47,11 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(parsed["safety"]["max_files_changed"], 40)
         self.assertEqual(parsed["safety"]["max_diff_lines"], 2_000)
         self.assertEqual(
-            parsed["project"]["state_dir"], str(root / "state" / "reposteward")
+            parsed["project"]["state_dir"], str(root / "state" / "forgesentinel")
         )
         self.assertEqual(
             parsed["project"]["workspace_dir"],
-            str(root / "data" / "reposteward" / "workspaces"),
+            str(root / "data" / "forgesentinel" / "workspaces"),
         )
         self.assertNotIn("github_token =", content.casefold())
 
@@ -99,7 +99,7 @@ class SetupTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             user = root / "user.toml"
-            project = root / "project" / ".reposteward.toml"
+            project = root / "project" / ".forgesentinel.toml"
             project.parent.mkdir()
             with patch.dict(
                 "os.environ",
@@ -119,17 +119,17 @@ class SetupTests(unittest.TestCase):
         self.assertIn("owner/repo", config.repositories)
         self.assertEqual(
             config.state_dir,
-            root / "state" / "reposteward" / "api.github.com" / "alice",
+            root / "state" / "forgesentinel" / "api.github.com" / "alice",
         )
         self.assertEqual(
             config.workspace_dir,
-            root / "data" / "reposteward" / "workspaces" / "api.github.com" / "alice",
+            root / "data" / "forgesentinel" / "workspaces" / "api.github.com" / "alice",
         )
         self.assertNotIn("project", project_config)
 
     def test_repo_add_rejects_duplicate_case_insensitively(self) -> None:
         with TemporaryDirectory() as directory:
-            project = Path(directory) / ".reposteward.toml"
+            project = Path(directory) / ".forgesentinel.toml"
             add_repository("Owner/Repo", path=project)
 
             with self.assertRaisesRegex(ConfigError, "already configured"):
@@ -139,7 +139,7 @@ class SetupTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             user = root / "user.toml"
-            project = root / ".reposteward.toml"
+            project = root / ".forgesentinel.toml"
             initialize_user_config(path=user, login="alice")
 
             add_repository("owner/repo", path=project, mode="maintainer")
@@ -157,10 +157,10 @@ class SetupTests(unittest.TestCase):
             root = Path(directory)
             subprocess.run(["git", "init", "-q", str(root)], check=True)
 
-            result = add_repository("owner/repo", path=root / ".reposteward.toml")
+            result = add_repository("owner/repo", path=root / ".forgesentinel.toml")
 
             ignored = subprocess.run(
-                ["git", "-C", str(root), "check-ignore", "-q", ".reposteward.toml"],
+                ["git", "-C", str(root), "check-ignore", "-q", ".forgesentinel.toml"],
                 check=False,
             )
             status = subprocess.run(
@@ -180,10 +180,10 @@ class SetupTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             subprocess.run(["git", "init", "-q", str(root)], check=True)
-            config_path = root / ".reposteward.toml"
+            config_path = root / ".forgesentinel.toml"
             config_path.write_text("config_version = 1\n", encoding="utf-8")
             subprocess.run(
-                ["git", "-C", str(root), "add", "-f", ".reposteward.toml"],
+                ["git", "-C", str(root), "add", "-f", ".forgesentinel.toml"],
                 check=True,
             )
 
@@ -196,7 +196,7 @@ class SetupTests(unittest.TestCase):
             ).stdout
 
         self.assertFalse(result["git_exclude_added"])
-        self.assertIn("AM .reposteward.toml", status)
+        self.assertIn("AM .forgesentinel.toml", status)
 
 
 if __name__ == "__main__":

@@ -10,13 +10,13 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from reposteward.agent import _parse_metrics
-from reposteward.config import RunnerConfig, load_config
-from reposteward.models import CommandResult, VerificationResult
-from reposteward.pipeline import Pipeline
-from reposteward.review import compact_run
-from reposteward.store import Store
-from reposteward.verifier import DockerVerifier
+from forgesentinel.agent import _parse_metrics
+from forgesentinel.config import RunnerConfig, load_config
+from forgesentinel.models import CommandResult, VerificationResult
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.review import compact_run
+from forgesentinel.store import Store
+from forgesentinel.verifier import DockerVerifier
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -77,7 +77,7 @@ def _bind_test_context(store: Store, run_id: str) -> None:
             "harness": "codex-cli",
             "model": "",
             "created_at": "2026-08-20T00:00:00Z",
-            "generator": "reposteward",
+            "generator": "forgesentinel",
         },
     }
     store.save_context_run(
@@ -147,7 +147,7 @@ class VerificationLogTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             log_path = root / "run" / "verification" / "01-command.log"
-            with patch("reposteward.verifier.subprocess.run", return_value=completed):
+            with patch("forgesentinel.verifier.subprocess.run", return_value=completed):
                 result = verifier._run_container(
                     root, "pytest -q", network=False, log_path=log_path
                 )
@@ -251,7 +251,7 @@ class ReviewPacketTests(unittest.TestCase):
             config = replace(
                 load_config(ROOT / "examples" / "PeaceMaker-best.toml"), state_dir=state_dir
             )
-            store = Store(state_dir / "reposteward.sqlite3")
+            store = Store(state_dir / "forgesentinel.sqlite3")
             run_id = store.start_run("owner/repo", 7, "verification")
             log_path = state_dir / "runs" / run_id / "verification" / "01.log"
             log_path.parent.mkdir(parents=True)
@@ -291,7 +291,7 @@ class ReviewPacketTests(unittest.TestCase):
             config = replace(
                 load_config(ROOT / "examples" / "PeaceMaker-best.toml"), state_dir=state_dir
             )
-            store = Store(state_dir / "reposteward.sqlite3")
+            store = Store(state_dir / "forgesentinel.sqlite3")
             run_id = store.start_run("owner/repo", 7, "pull_request")
             _bind_test_context(store, run_id)
             store.update_run(

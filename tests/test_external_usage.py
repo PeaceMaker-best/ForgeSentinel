@@ -15,10 +15,10 @@ from unittest.mock import patch
 import test_external_tasks
 from test_projects import repository
 
-from reposteward.cli import main
-from reposteward.codex_usage import UsageSourceError, read_codex_turns
-from reposteward.config import UsagePrice
-from reposteward.external_usage import ExternalUsage
+from forgesentinel.cli import main
+from forgesentinel.codex_usage import UsageSourceError, read_codex_turns
+from forgesentinel.config import UsagePrice
+from forgesentinel.external_usage import ExternalUsage
 
 
 def record(kind: str, **payload) -> dict:
@@ -218,17 +218,17 @@ class CodexUsageParserTests(unittest.TestCase):
         result = read_codex_turns(self.path, {"chosen"})
         prefix = (result["prefix_bytes"], result["prefix_sha256"])
         with (
-            patch("reposteward.codex_usage.MAX_SOURCE_BYTES", 10),
+            patch("forgesentinel.codex_usage.MAX_SOURCE_BYTES", 10),
             self.assertRaisesRegex(UsageSourceError, "bounded regular"),
         ):
             read_codex_turns(self.path, {"chosen"})
         with (
-            patch("reposteward.codex_usage.MAX_LINE_BYTES", 10),
+            patch("forgesentinel.codex_usage.MAX_LINE_BYTES", 10),
             self.assertRaisesRegex(UsageSourceError, "line exceeds"),
         ):
             read_codex_turns(self.path, {"chosen"})
         with (
-            patch("reposteward.codex_usage.MAX_RECORDS", 1),
+            patch("forgesentinel.codex_usage.MAX_RECORDS", 1),
             self.assertRaisesRegex(UsageSourceError, "record limit"),
         ):
             read_codex_turns(self.path, {"chosen"})
@@ -262,12 +262,12 @@ class ExternalUsageTests(unittest.TestCase):
 
     def test_repeat_refresh_successor_run_and_adopted_run_do_not_double_count(self):
         with patch(
-            "reposteward.external_usage.utc_now",
+            "forgesentinel.external_usage.utc_now",
             return_value="2026-09-07T02:00:00+00:00",
         ):
             self.assertEqual(self.collect()["sources"][0]["updated_turns"], 1)
         with patch(
-            "reposteward.external_usage.utc_now",
+            "forgesentinel.external_usage.utc_now",
             return_value="2026-09-07T03:00:00+00:00",
         ):
             self.assertTrue(self.collect()["sources"][0]["idempotent"])
@@ -371,13 +371,13 @@ class ExternalUsageTests(unittest.TestCase):
         for command in (["usage", "external-report", "owner/repo"],):
             output = io.StringIO()
             with (
-                patch("reposteward.cli.load_config", return_value=self.config),
+                patch("forgesentinel.cli.load_config", return_value=self.config),
                 patch(
-                    "reposteward.cli.Pipeline",
+                    "forgesentinel.cli.Pipeline",
                     side_effect=AssertionError("must remain local"),
                 ),
                 patch(
-                    "reposteward.github.GitHubClient",
+                    "forgesentinel.github.GitHubClient",
                     side_effect=AssertionError("no auth"),
                 ),
                 redirect_stdout(output),
@@ -387,9 +387,9 @@ class ExternalUsageTests(unittest.TestCase):
         self.assertFalse(self.service.path.exists())
         output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.load_config", return_value=self.config),
             patch(
-                "reposteward.cli.Pipeline",
+                "forgesentinel.cli.Pipeline",
                 side_effect=AssertionError("must remain local"),
             ),
             redirect_stdout(output),
@@ -473,7 +473,7 @@ class ExternalUsageTests(unittest.TestCase):
         write(self.source, rows)
         errors = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.load_config", return_value=self.config),
             redirect_stderr(errors),
         ):
             self.assertEqual(

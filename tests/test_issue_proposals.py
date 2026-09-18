@@ -6,11 +6,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from reposteward.config import load_config
-from reposteward.github import ProjectIssueProposal
-from reposteward.pipeline import Pipeline
-from reposteward.policy import PolicyError
-from reposteward.store import Store
+from forgesentinel.config import load_config
+from forgesentinel.github import ProjectIssueProposal
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import PolicyError
+from forgesentinel.store import Store
 
 
 class FakeProposalClient:
@@ -143,7 +143,7 @@ require_distinct_reviewer = {str(require_distinct_reviewer).lower()}
             )
             client = FakeProposalClient(proposal(), login="reviewer")
             with (
-                patch.dict("os.environ", {"REPOSTEWARD_ENABLE_ISSUE_STAGE": "1"}),
+                patch.dict("os.environ", {"FORGESENTINEL_ENABLE_ISSUE_STAGE": "1"}),
                 patch.object(
                     pipeline,
                     "_authenticated_publication_client",
@@ -171,7 +171,7 @@ require_distinct_reviewer = {str(require_distinct_reviewer).lower()}
                 "## Summary\n\nA security vulnerability.\n",
             )
             with (
-                patch.dict("os.environ", {"REPOSTEWARD_ENABLE_ISSUE_STAGE": "1"}),
+                patch.dict("os.environ", {"FORGESENTINEL_ENABLE_ISSUE_STAGE": "1"}),
                 self.assertRaisesRegex(PolicyError, "private reporting channel"),
             ):
                 pipeline.stage_issue_proposal(draft["id"], submitted_by="reviewer")
@@ -223,7 +223,7 @@ require_distinct_reviewer = {str(require_distinct_reviewer).lower()}
                 "PVTI_example", repository="owner/repo"
             )
             with (
-                patch.dict("os.environ", {"REPOSTEWARD_ENABLE_ISSUE_PROMOTION": "1"}),
+                patch.dict("os.environ", {"FORGESENTINEL_ENABLE_ISSUE_PROMOTION": "1"}),
                 patch.object(
                     pipeline,
                     "_authenticated_publication_client",
@@ -260,7 +260,7 @@ require_distinct_reviewer = {str(require_distinct_reviewer).lower()}
                 "PVTI_example", repository="owner/repo"
             )
             with (
-                patch.dict("os.environ", {"REPOSTEWARD_ENABLE_ISSUE_PROMOTION": "1"}),
+                patch.dict("os.environ", {"FORGESENTINEL_ENABLE_ISSUE_PROMOTION": "1"}),
                 patch.object(
                     pipeline,
                     "_authenticated_publication_client",
@@ -291,7 +291,7 @@ require_distinct_reviewer = {str(require_distinct_reviewer).lower()}
                 "PVTI_example", repository="owner/repo"
             )
             with (
-                patch.dict("os.environ", {"REPOSTEWARD_ENABLE_ISSUE_PROMOTION": "1"}),
+                patch.dict("os.environ", {"FORGESENTINEL_ENABLE_ISSUE_PROMOTION": "1"}),
                 patch.object(
                     pipeline,
                     "_authenticated_publication_client",

@@ -22,10 +22,10 @@ class PublicationWorkflowTests(unittest.TestCase):
             self.assertIn("permissions:\n  contents: read", content)
             self.assertIn("github.event.repository.default_branch", content)
             self.assertIn("persist-credentials: false", content)
-            self.assertIn("$RUNNER_TEMP/reposteward/state", content)
+            self.assertIn("$RUNNER_TEMP/forgesentinel/state", content)
             self.assertNotIn("${{ runner.temp }}", content)
             self.assertNotIn(
-                "    env:\n      GH_TOKEN: ${{ secrets.REPOSTEWARD_GITHUB_", content
+                "    env:\n      GH_TOKEN: ${{ secrets.FORGESENTINEL_GITHUB_", content
             )
 
     def test_issue_promotion_requires_environment_digest_and_duplicate_review(
@@ -35,12 +35,12 @@ class PublicationWorkflowTests(unittest.TestCase):
             ROOT / ".github" / "workflows" / "issue-proposal-promote.yml"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("environment: reposteward-issue-publishing", content)
+        self.assertIn("environment: forgesentinel-issue-publishing", content)
         self.assertIn("group: issue-promote-${{ inputs.repository }}", content)
         self.assertIn("review_digest:", content)
         self.assertIn("duplicates_reviewed:", content)
         self.assertIn('test "$GITHUB_ACTOR" = "$PUBLISHER_LOGIN"', content)
-        self.assertIn('REPOSTEWARD_ENABLE_ISSUE_PROMOTION: "1"', content)
+        self.assertIn('FORGESENTINEL_ENABLE_ISSUE_PROMOTION: "1"', content)
 
 
 if __name__ == "__main__":

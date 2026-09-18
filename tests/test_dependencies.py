@@ -8,17 +8,17 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from reposteward.config import RepositoryPolicy
-from reposteward.dependencies import (
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.dependencies import (
     build_dependency_plan,
     direct_dependency_requirements,
     parse_dependency_declarations,
     render_dependency_plan_text,
 )
-from reposteward.github import PullRequest
-from reposteward.pipeline import Pipeline
-from reposteward.policy import PolicyError
-from reposteward.store import Store
+from forgesentinel.github import PullRequest
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import PolicyError
+from forgesentinel.store import Store
 
 
 def _snapshot(numbers: list[int]) -> dict:
@@ -420,7 +420,7 @@ class DependencyAttestationPipelineTests(unittest.TestCase):
                 )
 
             with patch.dict(
-                os.environ, {"REPOSTEWARD_ENABLE_DEPENDENCY_ATTESTATION": "1"}
+                os.environ, {"FORGESENTINEL_ENABLE_DEPENDENCY_ATTESTATION": "1"}
             ):
                 confirmed = pipeline.attest_portfolio_dependency(
                     "owner/repo",

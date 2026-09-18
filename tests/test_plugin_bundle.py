@@ -14,12 +14,12 @@ from unittest.mock import patch
 
 from test_projects import git, repository
 
-from reposteward.cli import main
-from reposteward.config import load_config
-from reposteward.mcp_bridge import SCHEMAS, ScopedBridge, create_server
-from reposteward.plugin_bundle import MANIFEST, SKILLS, PluginBundle
-from reposteward.projects import ProjectError, ProjectRegistry
-from reposteward.workspace import sanitized_environment
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
+from forgesentinel.mcp_bridge import SCHEMAS, ScopedBridge, create_server
+from forgesentinel.plugin_bundle import MANIFEST, SKILLS, PluginBundle
+from forgesentinel.projects import ProjectError, ProjectRegistry
+from forgesentinel.workspace import sanitized_environment
 
 
 class PluginBundleTests(unittest.TestCase):
@@ -38,7 +38,7 @@ class PluginBundleTests(unittest.TestCase):
         self.registry = ProjectRegistry(self.config.state_dir / "projects.sqlite3")
         self.registry.link(self.repo)
         self.service = PluginBundle(self.config)
-        self.output = self.root / "reposteward-test"
+        self.output = self.root / "forgesentinel-test"
 
     def export(self) -> dict:
         plan = self.service.plan(self.repo, output=self.output)
@@ -49,7 +49,7 @@ class PluginBundleTests(unittest.TestCase):
     def test_plan_is_read_only_and_export_contains_exact_reviewed_content(self) -> None:
         before = self.registry.path.read_bytes()
         with patch(
-            "reposteward.github.GitHubClient", side_effect=AssertionError("offline")
+            "forgesentinel.github.GitHubClient", side_effect=AssertionError("offline")
         ):
             plan = self.service.plan(self.repo, output=self.output)
             self.assertEqual(plan, self.service.plan(self.repo, output=self.output))
@@ -58,7 +58,7 @@ class PluginBundleTests(unittest.TestCase):
                 self.repo, output=self.output, plan_digest=plan["plan_digest"]
             )
         self.assertEqual(before, self.registry.path.read_bytes())
-        self.assertFalse((self.config.state_dir / "reposteward.sqlite3").exists())
+        self.assertFalse((self.config.state_dir / "forgesentinel.sqlite3").exists())
         self.assertEqual(git(self.repo, "status", "--porcelain"), "")
         self.assertTrue(result["exported"])
         self.assertEqual(result["client_installation"], "not_attempted")
@@ -85,7 +85,7 @@ class PluginBundleTests(unittest.TestCase):
     def test_config_runtime_and_output_changes_invalidate_plan(self) -> None:
         plan = self.service.plan(self.repo, output=self.output)
         with (
-            patch("reposteward.plugin_bundle._runtime_digest", return_value="changed"),
+            patch("forgesentinel.plugin_bundle._runtime_digest", return_value="changed"),
             self.assertRaisesRegex(ProjectError, "plan changed"),
         ):
             self.service.export(
@@ -133,7 +133,7 @@ class PluginBundleTests(unittest.TestCase):
             return real_mkdir(path, *args, **kwargs)
 
         with (
-            patch("reposteward.plugin_bundle.os.mkdir", side_effect=racing_mkdir),
+            patch("forgesentinel.plugin_bundle.os.mkdir", side_effect=racing_mkdir),
             self.assertRaises(FileExistsError),
         ):
             self.service.export(
@@ -166,11 +166,11 @@ class PluginBundleTests(unittest.TestCase):
 
     def test_missing_mcp_is_diagnosed_before_any_write(self) -> None:
         with patch(
-            "reposteward.plugin_bundle.importlib.util.find_spec", return_value=None
+            "forgesentinel.plugin_bundle.importlib.util.find_spec", return_value=None
         ):
             plan = self.service.plan(self.repo, output=self.output)
             self.assertFalse(plan["diagnostics"]["mcp_available"])
-            with self.assertRaisesRegex(ProjectError, "reposteward\\[mcp\\]"):
+            with self.assertRaisesRegex(ProjectError, "forgesentinel\\[mcp\\]"):
                 self.service.export(
                     self.repo, output=self.output, plan_digest=plan["plan_digest"]
                 )

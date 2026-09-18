@@ -12,11 +12,11 @@ from unittest.mock import patch
 import test_external_verification
 from test_projects import git, repository
 
-from reposteward.mcp_bridge import SCHEMAS, ScopedBridge, create_server
-from reposteward.mcp_config import client_config
-from reposteward.projects import ProjectError
-from reposteward.verifier import DockerVerifier
-from reposteward.workspace import sanitized_environment
+from forgesentinel.mcp_bridge import SCHEMAS, ScopedBridge, create_server
+from forgesentinel.mcp_config import client_config
+from forgesentinel.projects import ProjectError
+from forgesentinel.verifier import DockerVerifier
+from forgesentinel.workspace import sanitized_environment
 
 HAS_MCP = importlib.util.find_spec("mcp") is not None
 
@@ -29,7 +29,7 @@ class BridgeTests(unittest.TestCase):
         self.bridge = ScopedBridge(self.config, self.repo)
 
     def test_understanding_is_read_only_and_matches_shared_service(self):
-        from reposteward.understanding import Understanding
+        from forgesentinel.understanding import Understanding
 
         service = Understanding(self.config.state_dir / "understanding")
         self.assertEqual(
@@ -153,7 +153,7 @@ class BridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             client_config(self.config, self.repo, client="unknown")
 
-    @unittest.skipUnless(HAS_MCP, "install reposteward[mcp] for SDK protocol tests")
+    @unittest.skipUnless(HAS_MCP, "install forgesentinel[mcp] for SDK protocol tests")
     def test_official_sdk_calls_all_capabilities(self) -> None:
         from mcp import Client
 
@@ -208,7 +208,7 @@ class BridgeTests(unittest.TestCase):
 
     def stdio_environment(self) -> tuple[dict, list[str]]:
         user_root = self.root / "client-config"
-        user_file = user_root / "reposteward/config.toml"
+        user_file = user_root / "forgesentinel/config.toml"
         user_file.parent.mkdir(parents=True)
         lines = [
             "config_version = 1",
@@ -236,7 +236,7 @@ class BridgeTests(unittest.TestCase):
         environment["XDG_CONFIG_HOME"] = str(user_root)
         arguments = [
             "-m",
-            "reposteward.cli",
+            "forgesentinel.cli",
             "--config",
             str(empty_project),
             "mcp",
@@ -246,7 +246,7 @@ class BridgeTests(unittest.TestCase):
         return environment, arguments
 
     @unittest.skipUnless(
-        HAS_MCP, "install reposteward[mcp] for real STDIO protocol tests"
+        HAS_MCP, "install forgesentinel[mcp] for real STDIO protocol tests"
     )
     def test_real_stdio_legacy_and_modern_clients_and_clean_eof(self) -> None:
         from mcp import Client, StdioServerParameters
@@ -280,12 +280,12 @@ class BridgeTests(unittest.TestCase):
         asyncio.run(asyncio.wait_for(run(), timeout=35))
 
     @unittest.skipUnless(
-        HAS_MCP, "install reposteward[mcp] for cancellation protocol tests"
+        HAS_MCP, "install forgesentinel[mcp] for cancellation protocol tests"
     )
     def test_sdk_cancellation_reaches_worker_and_waits_for_cleanup(self) -> None:
         from mcp import Client
 
-        from reposteward.external_verification import ExternalVerification
+        from forgesentinel.external_verification import ExternalVerification
 
         started, cancelled, finished = Event(), Event(), Event()
 
@@ -321,7 +321,7 @@ class BridgeTests(unittest.TestCase):
         self.assertTrue(cancelled.is_set())
         self.assertTrue(finished.is_set())
 
-    @unittest.skipUnless(HAS_MCP, "install reposteward[mcp] for strict transport tests")
+    @unittest.skipUnless(HAS_MCP, "install forgesentinel[mcp] for strict transport tests")
     def test_unknown_version_and_oversized_wire_frame_fail_without_nonprotocol_stdout(
         self,
     ) -> None:

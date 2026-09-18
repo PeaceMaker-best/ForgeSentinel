@@ -9,9 +9,9 @@ from contextlib import closing
 from dataclasses import asdict
 from pathlib import Path
 
-from reposteward.merge import MergeCheck, MergeSnapshot, evaluate_merge
-from reposteward.models import Candidate, Issue, RepositoryInfo
-from reposteward.store import SCHEMA_VERSION, Store, StoreError
+from forgesentinel.merge import MergeCheck, MergeSnapshot, evaluate_merge
+from forgesentinel.models import Candidate, Issue, RepositoryInfo
+from forgesentinel.store import SCHEMA_VERSION, Store, StoreError
 
 
 def _context_source_digest(marker: str) -> str:
@@ -81,7 +81,7 @@ def _context_payload(
             "harness": "codex-cli",
             "model": "",
             "created_at": "2026-01-01T00:00:00Z",
-            "generator": "reposteward",
+            "generator": "forgesentinel",
         },
     }
 
@@ -873,7 +873,7 @@ class StoreTests(unittest.TestCase):
             store.update_run(
                 run_id,
                 status="submitted",
-                worktree="/tmp/reposteward-workspace",
+                worktree="/tmp/forgesentinel-workspace",
                 details={"commit_sha": "c" * 40},
             )
             store.save_checkpoint(
@@ -893,7 +893,7 @@ class StoreTests(unittest.TestCase):
 
         self.assertEqual(safety["repository"], "owner/repo")
         self.assertEqual(safety["status"], "submitted")
-        self.assertEqual(safety["worktree"], "/tmp/reposteward-workspace")
+        self.assertEqual(safety["worktree"], "/tmp/forgesentinel-workspace")
         self.assertEqual(safety["head_commit"], "c" * 40)
         self.assertTrue(safety["terminal_checkpoint"])
 

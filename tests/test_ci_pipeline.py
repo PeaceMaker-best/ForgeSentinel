@@ -3,9 +3,9 @@ from __future__ import annotations
 import unittest
 from types import SimpleNamespace
 
-from reposteward.config import RepositoryPolicy
-from reposteward.github import PullRequest
-from reposteward.pipeline import Pipeline
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.github import PullRequest
+from forgesentinel.pipeline import Pipeline
 
 
 def _job(

@@ -12,10 +12,10 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from reposteward.cli import main
-from reposteward.config import load_config
-from reposteward.projects import ProjectError, ProjectRegistry, normalize_remote
-from reposteward.setup import add_repository, initialize_user_config
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
+from forgesentinel.projects import ProjectError, ProjectRegistry, normalize_remote
+from forgesentinel.setup import add_repository, initialize_user_config
 
 
 def git(root: Path, *args: str) -> str:
@@ -181,9 +181,9 @@ class ProjectTests(unittest.TestCase):
         initialize_user_config(path=user, login="owner")
         config = replace(load_config(user), state_dir=self.root / "cli-state")
         with (
-            patch("reposteward.cli.load_config", return_value=config),
+            patch("forgesentinel.cli.load_config", return_value=config),
             patch(
-                "reposteward.cli.Pipeline",
+                "forgesentinel.cli.Pipeline",
                 side_effect=AssertionError("unexpected Pipeline"),
             ),
             redirect_stdout(io.StringIO()) as output,

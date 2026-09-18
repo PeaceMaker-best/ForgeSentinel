@@ -15,15 +15,15 @@ limits set by the maintainer. That autonomous steward is a roadmap, not a featur
 the current release.
 
 <p align="center">
-  <img src="docs/assets/reposteward-lifecycle.svg" width="100%" alt="ForgeSentinel workflow: a reviewed GitHub Issue enters a credential-free coding workspace, isolated verification produces evidence, a maintainer reviews the result, and a separate gate publishes a Draft PR for CI and reviewer follow-up.">
+  <img src="docs/assets/forgesentinel-lifecycle.svg" width="100%" alt="ForgeSentinel workflow: a reviewed GitHub Issue enters a credential-free coding workspace, isolated verification produces evidence, a maintainer reviews the result, and a separate gate publishes a Draft PR for CI and reviewer follow-up.">
 </p>
 
-<p align="center"><sub>The diagram has an editable <a href="docs/assets/reposteward-lifecycle.excalidraw">Excalidraw source</a>.</sub></p>
+<p align="center"><sub>The diagram has an editable <a href="docs/assets/forgesentinel-lifecycle.excalidraw">Excalidraw source</a>.</sub></p>
 
 ## Understand a project before changing it
 
-Read a local clone or worktree with `reposteward understand scan PATH`, then
-`reposteward understand guide PATH` or `reposteward understand query PATH "symbol or problem"`.
+Read a local clone or worktree with `forgesentinel understand scan PATH`, then
+`forgesentinel understand guide PATH` or `forgesentinel understand query PATH "symbol or problem"`.
 The guide links project declarations, Python static relationships and a suggested reading
 route to versioned source evidence. Reading does not require a linked task or GitHub login.
 See the [project understanding guide](docs/project-understanding.zh-CN.md) for limits and MCP access.
@@ -70,9 +70,9 @@ the model-governed repository direction.
 For an isolated installation used outside this source checkout, see the
 [local installation and offline diagnostics guide](docs/local-installation.zh-CN.md).
 
-Run `reposteward web` for the [read-only local workbench](docs/local-workbench.zh-CN.md):
+Run `forgesentinel web` for the [read-only local workbench](docs/local-workbench.zh-CN.md):
 project guides, task continuity, review evidence and diagnostics in one browser window.
-`reposteward version` reports installation metadata; `reposteward doctor --local`
+`forgesentinel version` reports installation metadata; `forgesentinel doctor --local`
 checks configuration sources and database compatibility without authentication or migration.
 
 The full Issue-to-PR workflow requires Python 3.12 or newer, uv, Git, Docker,
@@ -83,31 +83,31 @@ offline diagnostics can be used before configuring those execution services.
 git clone https://github.com/PeaceMaker-best/ForgeSentinel.git
 cd ForgeSentinel
 uv sync
-uv run reposteward init
-uv run reposteward --help
+uv run forgesentinel init
+uv run forgesentinel --help
 ```
 
 `init` reads the current `gh auth` and Git identity, then writes user-owned settings
-to `~/.config/reposteward/config.toml`. It does not store a GitHub token in that
+to `~/.config/forgesentinel/config.toml`. It does not store a GitHub token in that
 file.
 
 Add a repository in maintainer mode:
 
 ```bash
 cd /path/to/repository
-uv run reposteward repo add owner/repository --mode maintainer
+uv run forgesentinel repo add owner/repository --mode maintainer
 ```
 
-The command creates a machine-local `.reposteward.toml` and excludes it through
+The command creates a machine-local `.forgesentinel.toml` and excludes it through
 `.git/info/exclude`. Fill in the repository's bootstrap and verification allowlists,
 then build the verifier and check the environment:
 
 ```bash
-uv run reposteward image build
-uv run reposteward doctor
+uv run forgesentinel image build
+uv run forgesentinel doctor
 ```
 
-See the [example configuration](reposteward.example.toml) and the
+See the [example configuration](forgesentinel.example.toml) and the
 [detailed Chinese operator guide](docs/operator-guide.zh-CN.md) for the full setup.
 
 ## Prepare the first reviewed change
@@ -115,8 +115,8 @@ See the [example configuration](reposteward.example.toml) and the
 Start with an open, reviewed Issue in a repository you maintain:
 
 ```bash
-uv run reposteward gate owner/repository 123
-uv run reposteward prepare owner/repository 123
+uv run forgesentinel gate owner/repository 123
+uv run forgesentinel prepare owner/repository 123
 ```
 
 `prepare` clones the latest default branch into an isolated workspace, invokes the
@@ -127,15 +127,15 @@ verification status, logs, and resource use.
 Inspect the result without publishing it:
 
 ```bash
-uv run reposteward inspect RUN_ID
-uv run reposteward logs RUN_ID
+uv run forgesentinel inspect RUN_ID
+uv run forgesentinel logs RUN_ID
 ```
 
 After reviewing the exact diff and evidence, publish through a separate command:
 
 ```bash
-REPOSTEWARD_ENABLE_SUBMIT=1 \
-  uv run reposteward submit owner/repository 123 \
+FORGESENTINEL_ENABLE_SUBMIT=1 \
+  uv run forgesentinel submit owner/repository 123 \
   --reviewed-by your-github-login
 ```
 
@@ -145,9 +145,9 @@ GitHub identity, current head, base, policy, and remote PR state must all match.
 After publication:
 
 ```bash
-uv run reposteward follow-up RUN_ID
-uv run reposteward repair RUN_ID
-uv run reposteward merge-decision RUN_ID
+uv run forgesentinel follow-up RUN_ID
+uv run forgesentinel repair RUN_ID
+uv run forgesentinel merge-decision RUN_ID
 ```
 
 `follow-up` ingests only changed GitHub facts. `repair` prepares a new verified
@@ -159,16 +159,16 @@ deterministic eligibility result without merging.
 ForgeSentinel also exposes repository-level, mostly read-only views:
 
 ```bash
-uv run reposteward inbox --repo owner/repository --format text
-uv run reposteward portfolio inspect owner/repository --format text
-uv run reposteward portfolio plan owner/repository --format text
-uv run reposteward branch-cleanup plan owner/repository --format text
-uv run reposteward batch plan owner/repository --format text
-uv run reposteward trace owner/repository 123 --format text
-uv run reposteward usage report owner/repository
-uv run reposteward usage external-report owner/repository
-uv run reposteward storage stats --repo owner/repository
-uv run reposteward benchmark run --output .artifacts/benchmark.json
+uv run forgesentinel inbox --repo owner/repository --format text
+uv run forgesentinel portfolio inspect owner/repository --format text
+uv run forgesentinel portfolio plan owner/repository --format text
+uv run forgesentinel branch-cleanup plan owner/repository --format text
+uv run forgesentinel batch plan owner/repository --format text
+uv run forgesentinel trace owner/repository 123 --format text
+uv run forgesentinel usage report owner/repository
+uv run forgesentinel usage external-report owner/repository
+uv run forgesentinel storage stats --repo owner/repository
+uv run forgesentinel benchmark run --output .artifacts/benchmark.json
 ```
 
 The persistent queue and batch planner store bounded control-plane intent. They do not
@@ -182,7 +182,7 @@ no conversation text. Savings comparisons wait for real usage data.
 For maintainer same-repository policies, `branch-cleanup plan` builds a read-only,
 digest-bound backlog from submitted runs and successful merge audits. Applying a
 reviewed plan additionally requires `branch_cleanup = true`, the
-`REPOSTEWARD_ENABLE_BRANCH_CLEANUP=1` gate, matching configured/reviewed/authenticated
+`FORGESENTINEL_ENABLE_BRANCH_CLEANUP=1` gate, matching configured/reviewed/authenticated
 identity, and fresh exact branch/PR facts. The leased Git delete uses the host SSH
 identity; ambiguous results stay pending for read-only reconciliation and never change
 the authoritative merge result.
@@ -220,9 +220,9 @@ harness run record. Native harness sessions can speed up recovery, but they are 
 source of truth.
 
 ```bash
-uv run reposteward context inspect RUN_ID
-uv run reposteward context export RUN_ID --output handoff.json
-uv run reposteward context import handoff.json
+uv run forgesentinel context inspect RUN_ID
+uv run forgesentinel context export RUN_ID --output handoff.json
+uv run forgesentinel context import handoff.json
 ```
 
 The bundle contains digests and bounded task facts, not account credentials. Imported
@@ -255,7 +255,7 @@ authority.
 | Detailed commands and operating procedures | [Chinese operator guide](docs/operator-guide.zh-CN.md) |
 | Components, persistence, and harness contracts | [Architecture](docs/architecture.md) |
 | Project Draft Issue review with GitHub Actions | [GitHub Actions](docs/github-actions.md) |
-| Full project configuration | [Example TOML](reposteward.example.toml) |
+| Full project configuration | [Example TOML](forgesentinel.example.toml) |
 | Contribution workflow | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Private security reporting | [SECURITY.md](SECURITY.md) |
 | Long-term positioning decision | [RFC #70](https://github.com/PeaceMaker-best/ForgeSentinel/issues/70) |
@@ -277,8 +277,8 @@ uv sync
 uv run python -m unittest discover -s tests -v
 uvx ruff check .
 uvx ruff format --check .
-uv run reposteward --help
-uv run reposteward benchmark run
+uv run forgesentinel --help
+uv run forgesentinel benchmark run
 uv build
 ```
 

@@ -8,9 +8,9 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from reposteward.config import ConfigError, load_config
-from reposteward.models import AgentResult, CommandResult
-from reposteward.verifier import DockerVerifier
+from forgesentinel.config import ConfigError, load_config
+from forgesentinel.models import AgentResult, CommandResult
+from forgesentinel.verifier import DockerVerifier
 
 
 class VerificationHostsTests(unittest.TestCase):
@@ -128,7 +128,7 @@ class VerificationHostsTests(unittest.TestCase):
             verifier = DockerVerifier(self.config(root, ""))
             completed = subprocess.CompletedProcess([], 0, "", "")
             with patch(
-                "reposteward.verifier.subprocess.run", return_value=completed
+                "forgesentinel.verifier.subprocess.run", return_value=completed
             ) as run:
                 verifier._run_container(
                     root,

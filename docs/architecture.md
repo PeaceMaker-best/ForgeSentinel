@@ -179,7 +179,7 @@ run、目标、branch、验证 head、预期远端 head、操作者和租约 gen
 配置拥有，项目层不能静默缩短。工作区扫描不跟随符号链接；只有所有关联 run 均到达终态
 Checkpoint、Git 状态干净且 HEAD 可从 submitted run 或远端引用恢复时才会进入计划。apply 会再次
 核对目录身份、元数据快照、HEAD 和 run 状态，变化即跳过。GC 默认 dry-run；apply 同时要求
-`--apply` 和 `REPOSTEWARD_ENABLE_GC=1`，并在删除前后追加审计。普通 GC 永不删除事件索引、
+`--apply` 和 `FORGESENTINEL_ENABLE_GC=1`，并在删除前后追加审计。普通 GC 永不删除事件索引、
 Context Checkpoint、Task Queue、Publication Attempt、Portfolio Dependency、Merge Decision、
 Merge Execution 或自身审计。
 - `merge_decisions`：追加保存每次合并评估的 head/base、policy、GitHub 快照与决策摘要；重复评估
@@ -276,9 +276,9 @@ Context Pack 的 source digest。越界链接、超限、坏 UTF-8 和不支持�
 `derived_review_required`，新的 Harness 必须对照当前 checkout 和证据重新验证。
 
 ```bash
-uv run reposteward context inspect RUN_ID
-uv run reposteward context export RUN_ID --output handoff.json
-uv run reposteward context import handoff.json
+uv run forgesentinel context inspect RUN_ID
+uv run forgesentinel context export RUN_ID --output handoff.json
+uv run forgesentinel context import handoff.json
 ```
 
 导出包包含 schema 版本、内容摘要和 token 粗略估算，不包含 GitHub、模型供应商或其他账号凭据。

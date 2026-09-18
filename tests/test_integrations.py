@@ -11,8 +11,8 @@ from unittest.mock import patch
 
 from test_projects import repository
 
-from reposteward.cli import main
-from reposteward.integrations import (
+from forgesentinel.cli import main
+from forgesentinel.integrations import (
     SHARED_PATH,
     SHARED_TEXT,
     AgentIntegration,
@@ -82,7 +82,7 @@ class IntegrationTests(unittest.TestCase):
         for client in ("codex", "claude-code", "copilot-vscode"):
             self.apply(client)
         self.assertIn(
-            "@.agents/reposteward-context.md", (self.repo / "CLAUDE.md").read_text()
+            "@.agents/forgesentinel-context.md", (self.repo / "CLAUDE.md").read_text()
         )
         self.assertIn(
             "#file:", (self.repo / ".github/copilot-instructions.md").read_text()
@@ -128,7 +128,7 @@ class IntegrationTests(unittest.TestCase):
             self.service.plan(self.repo, client="codex")
         self.assertEqual(list(outside.iterdir()), [])
         (self.repo / ".agents").unlink()
-        (self.repo / "AGENTS.md").write_text("<!-- reposteward:unknown -->")
+        (self.repo / "AGENTS.md").write_text("<!-- forgesentinel:unknown -->")
         with self.assertRaisesRegex(IntegrationConflict, "unowned"):
             self.service.plan(self.repo, client="codex")
         with self.assertRaisesRegex(IntegrationConflict, "unsupported"):
@@ -200,11 +200,11 @@ class IntegrationTests(unittest.TestCase):
         output = io.StringIO()
         with (
             patch(
-                "reposteward.cli.load_config",
+                "forgesentinel.cli.load_config",
                 return_value=SimpleNamespace(state_dir=self.state),
             ),
             patch(
-                "reposteward.cli.Pipeline",
+                "forgesentinel.cli.Pipeline",
                 side_effect=AssertionError("Pipeline started"),
             ),
             redirect_stdout(output),

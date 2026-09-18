@@ -10,11 +10,11 @@ from unittest.mock import Mock, patch
 import test_external_verification
 from test_projects import repository
 
-from reposteward.cli import main
-from reposteward.github import GitHubError
-from reposteward.merge import MergeSnapshot, evaluate_merge
-from reposteward.overview import ProjectOverview, render_overview
-from reposteward.store import utc_now
+from forgesentinel.cli import main
+from forgesentinel.github import GitHubError
+from forgesentinel.merge import MergeSnapshot, evaluate_merge
+from forgesentinel.overview import ProjectOverview, render_overview
+from forgesentinel.store import utc_now
 
 
 class OverviewTests(unittest.TestCase):
@@ -60,10 +60,10 @@ class OverviewTests(unittest.TestCase):
         (self.repo / "source.txt").write_text("dirty work\n")
         with (
             patch(
-                "reposteward.overview.GitHubClient",
+                "forgesentinel.overview.GitHubClient",
                 side_effect=AssertionError("authentication"),
             ),
-            patch("reposteward.cli.Pipeline", side_effect=AssertionError("Pipeline")),
+            patch("forgesentinel.cli.Pipeline", side_effect=AssertionError("Pipeline")),
         ):
             result = self.overview.show()
             self.assertEqual(
@@ -75,7 +75,7 @@ class OverviewTests(unittest.TestCase):
             )
             output = io.StringIO()
             with (
-                patch("reposteward.cli.load_config", return_value=self.config),
+                patch("forgesentinel.cli.load_config", return_value=self.config),
                 redirect_stdout(output),
             ):
                 self.assertEqual(main(["overview", "show", "--format", "text"]), 0)
@@ -130,7 +130,7 @@ class OverviewTests(unittest.TestCase):
         config = replace(self.config, state_dir=self.root / "new-state")
         overview = ProjectOverview(config)
         overview.registry.link(self.repo)
-        ledger = config.state_dir / "reposteward.sqlite3"
+        ledger = config.state_dir / "forgesentinel.sqlite3"
         result = overview.show()
         self.assertFalse(result["complete"])
         self.assertFalse(ledger.exists())

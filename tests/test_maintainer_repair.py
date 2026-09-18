@@ -6,9 +6,9 @@ from types import SimpleNamespace
 
 import test_feedback
 
-from reposteward.context import repository_policy_digest
-from reposteward.pipeline import _canonical_digest
-from reposteward.policy import PolicyError
+from forgesentinel.context import repository_policy_digest
+from forgesentinel.pipeline import _canonical_digest
+from forgesentinel.policy import PolicyError
 
 
 class MaintainerRepairTests(test_feedback.FeedbackTests):

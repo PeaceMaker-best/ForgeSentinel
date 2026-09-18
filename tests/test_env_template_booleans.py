@@ -10,12 +10,12 @@ from unittest.mock import patch
 
 from test_projects import git, repository
 
-from reposteward.config import ConfigError, load_config
-from reposteward.context import repository_policy_digest
-from reposteward.models import AgentResult, CommandResult
-from reposteward.projects import ProjectError, canonical_digest
-from reposteward.snapshots import verify_snapshot_copy, workspace_snapshot
-from reposteward.verifier import (
+from forgesentinel.config import ConfigError, load_config
+from forgesentinel.context import repository_policy_digest
+from forgesentinel.models import AgentResult, CommandResult
+from forgesentinel.projects import ProjectError, canonical_digest
+from forgesentinel.snapshots import verify_snapshot_copy, workspace_snapshot
+from forgesentinel.verifier import (
     MAX_ENV_TEMPLATE_BYTES,
     DockerVerifier,
     VerificationError,

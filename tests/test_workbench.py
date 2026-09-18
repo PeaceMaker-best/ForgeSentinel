@@ -12,14 +12,14 @@ from unittest.mock import patch
 import test_external_tasks
 from test_projects import repository
 
-from reposteward.cli import main
-from reposteward.external_tasks import TaskConflict
-from reposteward.lifecycle import build_lifecycle_trace
-from reposteward.mcp_bridge import ScopedBridge
-from reposteward.overview import ProjectOverview
-from reposteward.projects import ProjectError
-from reposteward.store import Store, StoreError
-from reposteward.workbench import Workbench
+from forgesentinel.cli import main
+from forgesentinel.external_tasks import TaskConflict
+from forgesentinel.lifecycle import build_lifecycle_trace
+from forgesentinel.mcp_bridge import ScopedBridge
+from forgesentinel.overview import ProjectOverview
+from forgesentinel.projects import ProjectError
+from forgesentinel.store import Store, StoreError
+from forgesentinel.workbench import Workbench
 
 
 class WorkbenchTests(unittest.TestCase):
@@ -58,7 +58,7 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(response["context"]["open_work"], ["Handle empty input"])
         output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.load_config", return_value=self.config),
             redirect_stdout(output),
         ):
             self.assertEqual(main(["task", "context", run_id, "--live"]), 0)
@@ -79,7 +79,7 @@ class WorkbenchTests(unittest.TestCase):
     def test_reads_do_not_write_authenticate_or_start_pipeline(self):
         paths = [
             self.config.state_dir / name
-            for name in ("reposteward.sqlite3", "projects.sqlite3")
+            for name in ("forgesentinel.sqlite3", "projects.sqlite3")
         ]
         before = [p.read_bytes() for p in paths]
         initialize = Store.__init__
@@ -91,11 +91,11 @@ class WorkbenchTests(unittest.TestCase):
         with (
             patch.object(Store, "__init__", guarded),
             patch(
-                "reposteward.github.resolve_token", side_effect=AssertionError("auth")
+                "forgesentinel.github.resolve_token", side_effect=AssertionError("auth")
             ),
-            patch("reposteward.cli.Pipeline", side_effect=AssertionError("Pipeline")),
+            patch("forgesentinel.cli.Pipeline", side_effect=AssertionError("Pipeline")),
             patch(
-                "reposteward.overview.GitHubClient",
+                "forgesentinel.overview.GitHubClient",
                 side_effect=AssertionError("network"),
             ),
         ):
@@ -170,7 +170,7 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(app.overview()["projects"], [])
         self.assertEqual(app.settings()["databases"]["tasks"]["status"], "missing")
         self.assertFalse((self.root / "missing").exists())
-        path = self.config.state_dir / "reposteward.sqlite3"
+        path = self.config.state_dir / "forgesentinel.sqlite3"
         with closing(sqlite3.connect(path)) as db:
             db.execute("PRAGMA user_version=99")
         before = path.read_bytes()
@@ -223,9 +223,9 @@ class WorkbenchTests(unittest.TestCase):
 
     def test_cli_web_uses_explicit_scope_without_pipeline(self):
         with (
-            patch("reposteward.cli.load_config", return_value=self.config),
-            patch("reposteward.cli.Pipeline", side_effect=AssertionError("Pipeline")),
-            patch("reposteward.web_server.serve") as serve,
+            patch("forgesentinel.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.Pipeline", side_effect=AssertionError("Pipeline")),
+            patch("forgesentinel.web_server.serve") as serve,
         ):
             self.assertEqual(
                 main(

@@ -6,15 +6,15 @@ ForgeSentinel 可以把一个已关联工作区的 MCP 连接和四类 skills �
 
 ## 准备和预览
 
-在日常使用的独立环境安装 `reposteward[mcp]`，按已有流程配置仓库并关联项目。
+在日常使用的独立环境安装 `forgesentinel[mcp]`，按已有流程配置仓库并关联项目。
 首次只读理解项目仍可直接使用 `understand` CLI，无需 Issue 或插件。
 插件需要已有的项目关联及启用的仓库策略。
 
 ```sh
-reposteward project inspect /absolute/path/project
+forgesentinel project inspect /absolute/path/project
 mkdir -p "$HOME/plugins"
-reposteward plugin plan /absolute/path/project \
-  --output "$HOME/plugins/reposteward-my-project"
+forgesentinel plugin plan /absolute/path/project \
+  --output "$HOME/plugins/forgesentinel-my-project"
 ```
 
 输出包括每个文件的内容和摘要、绑定身份、运行时源码摘要、配置摘要及 MCP
@@ -24,8 +24,8 @@ reposteward plugin plan /absolute/path/project \
 检查输出后，将返回的 `plan_digest` 传给独立导出命令：
 
 ```sh
-reposteward plugin export /absolute/path/project \
-  --output "$HOME/plugins/reposteward-my-project" \
+forgesentinel plugin export /absolute/path/project \
+  --output "$HOME/plugins/forgesentinel-my-project" \
   --plan-digest REVIEWED_PLAN_DIGEST
 ```
 
@@ -67,10 +67,10 @@ CLAUDE.md、Copilot 指令或 marketplace。
 使用预期的 CLI 安装环境，检查导出包与当前工作区是否仍匹配：
 
 ```sh
-reposteward plugin doctor /absolute/path/project \
-  --bundle "$HOME/plugins/reposteward-my-project"
-reposteward plugin install-plan /absolute/path/project \
-  --bundle "$HOME/plugins/reposteward-my-project"
+forgesentinel plugin doctor /absolute/path/project \
+  --bundle "$HOME/plugins/forgesentinel-my-project"
+forgesentinel plugin install-plan /absolute/path/project \
+  --bundle "$HOME/plugins/forgesentinel-my-project"
 ```
 
 这两个命令只读、离线，不启动包中的 MCP 命令，不调用 Codex，不修改客户端

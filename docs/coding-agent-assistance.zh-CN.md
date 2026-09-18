@@ -7,19 +7,19 @@ ForgeSentinel 负责把项目、任务目标、未完成事项、决定与验证
 先按项目自己的方式 clone，再在 ForgeSentinel 的用户配置添加对应仓库的 maintainer 策略。`project link` 只建立本地关联，不 clone、不改动目标代码。相同 remote 的多个 worktree 属于同一个项目，但各有独立的工作区绑定。
 
 ```sh
-reposteward repo add owner/project --mode maintainer
-reposteward project link /absolute/path/project
-reposteward project inspect /absolute/path/project
-reposteward project list
+forgesentinel repo add owner/project --mode maintainer
+forgesentinel project link /absolute/path/project
+forgesentinel project inspect /absolute/path/project
+forgesentinel project list
 ```
 
 开发任务必须来自已审阅的开放 Issue，并在 feature branch 上开始。`task start` 会重新检查 Issue、贡献策略及本地 origin 基线；需要在开始前按项目方式 fetch。
 
 ```sh
-reposteward task start /absolute/path/project --issue 123 --reviewed-by YOUR_GITHUB_LOGIN
-reposteward task current /absolute/path/project
-reposteward task inspect RUN_ID --live
-reposteward task context RUN_ID --budget 24000 --scope-path src/module.py
+forgesentinel task start /absolute/path/project --issue 123 --reviewed-by YOUR_GITHUB_LOGIN
+forgesentinel task current /absolute/path/project
+forgesentinel task inspect RUN_ID --live
+forgesentinel task context RUN_ID --budget 24000 --scope-path src/module.py
 ```
 
 上下文中的 contract 保留完整源要求，或使用显式审阅的精简契约；超出预算的强制要求会报错。未完成事项和当前决定来自台账。可选描述、经验和偏好被裁减时，coverage 给出遗漏及取回线索。Agent 所称“已完成”和“测试通过”始终是待核验声明。
@@ -31,7 +31,7 @@ Codex 用户也可用 `plugin plan/export` 导出绑定工作区的本机插件�
 
 `integration plan` 先生成可审阅 diff 和摘要，`apply` 必须使用该摘要。接入保留原有 AGENTS.md、CLAUDE.md 与 Copilot 指令；撤销只移除自己管理的片段。普通文件不会保存机器路径或认证信息。
 
-MCP 是可选依赖：在运行 ForgeSentinel 的 Python 环境安装 `reposteward[mcp]`。`mcp config PATH --client codex|claude-code|copilot-vscode` 输出本机配置预览，不自动写客户端配置。服务每次只绑定一个具体工作区，提供 project、context、evidence、understanding、checkpoint、verification 六类工具。MCP 服务启动后持有当时的用户配置；修改策略或验证 profile 后应重启服务。
+MCP 是可选依赖：在运行 ForgeSentinel 的 Python 环境安装 `forgesentinel[mcp]`。`mcp config PATH --client codex|claude-code|copilot-vscode` 输出本机配置预览，不自动写客户端配置。服务每次只绑定一个具体工作区，提供 project、context、evidence、understanding、checkpoint、verification 六类工具。MCP 服务启动后持有当时的用户配置；修改策略或验证 profile 后应重启服务。
 
 Codex 可以通过用户 `config.toml` 配置 STDIO MCP；Claude Code 可使用临时配置文件及 `--mcp-config`；VS Code 使用用户 MCP 设置。命令路径和本地配置保存在用户目录。[Codex MCP 配置](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)、[Claude Code MCP](https://code.claude.com/docs/en/mcp)。
 
@@ -46,8 +46,8 @@ Codex 可以通过用户 `config.toml` 配置 STDIO MCP；Claude Code 可使用�
 可复用经验先 propose 为 candidate，再由维护者 promote；记录适用路径、来源和审阅理由。即使有测试证据，也不把任意经验断言当成已被测试证明。只有调用 context 时显式指定路径，才选取适用经验；代码或证据变化时过期条目不进入建议。
 
 ```sh
-reposteward overview show --format text
-reposteward overview refresh --format text
+forgesentinel overview show --format text
+forgesentinel overview refresh --format text
 ```
 
 show 默认仅查看本地事实。refresh 显式拉取 GitHub，缓存有时间与错误状态；一个项目刷新失败不妨碍查看其他项目。未处理反馈、未知验证与新增阻塞持续可见。

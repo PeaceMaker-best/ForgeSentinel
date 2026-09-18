@@ -4,9 +4,9 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
-from reposteward.config import load_config
-from reposteward.discovery import score_issue
-from reposteward.models import Issue, RepositoryInfo
+from forgesentinel.config import load_config
+from forgesentinel.discovery import score_issue
+from forgesentinel.models import Issue, RepositoryInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 

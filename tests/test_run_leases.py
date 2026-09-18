@@ -8,8 +8,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock
 
-from reposteward.pipeline import Pipeline
-from reposteward.store import SCHEMA_VERSION, Store, StoreError
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.store import SCHEMA_VERSION, Store, StoreError
 
 
 class RunLeaseStoreTests(unittest.TestCase):

@@ -6,12 +6,12 @@ from contextlib import nullcontext
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from reposteward.config import RepositoryPolicy
-from reposteward.context import repository_policy_digest
-from reposteward.github import GitHubError, PullRequest
-from reposteward.pipeline import Pipeline
-from reposteward.policy import PolicyError
-from reposteward.store import RunLease, StoreError
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.context import repository_policy_digest
+from forgesentinel.github import GitHubError, PullRequest
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import PolicyError
+from forgesentinel.store import RunLease, StoreError
 
 
 class StubStore:
@@ -394,7 +394,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline = self.pipeline(owner_attestation=True)
         pipeline.github.review_decision = ""
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}):
             attestation = pipeline.attest_owner_review("run-1", reviewed_by="alice")
         decision = pipeline.merge_decision("run-1")
 
@@ -416,7 +416,7 @@ class MergePipelineTests(unittest.TestCase):
     def test_changed_activity_invalidates_owner_attestation(self) -> None:
         pipeline = self.pipeline(owner_attestation=True)
         pipeline.github.review_decision = ""
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
         pipeline.github.activity_marker = "new-review"
 
@@ -432,7 +432,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.review_decision = ""
         pipeline.github.pull_author = "external"
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "authored externally"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -440,7 +440,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.pull_author = "alice"
         pipeline.github.rules_require_review = True
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "independent review"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -453,7 +453,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.head_repository = "owner/other-repo"
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "cross-repository"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -466,7 +466,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.activity_head_sha = "f" * 40
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "different revisions"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -478,7 +478,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.review_decision = "CHANGES_REQUESTED"
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "cannot override"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -491,7 +491,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.files = [".github/workflows/quality.yml"]
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "high_risk_change"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -504,7 +504,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.optional_check_pending = True
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}),
             self.assertRaisesRegex(PolicyError, "CI to finish: optional"),
         ):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
@@ -514,11 +514,11 @@ class MergePipelineTests(unittest.TestCase):
     def test_merge_executor_accepts_fresh_owner_attestation(self) -> None:
         pipeline = self.pipeline(auto_merge=True, owner_attestation=True)
         pipeline.github.review_decision = ""
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_OWNER_ATTESTATION": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_OWNER_ATTESTATION": "1"}):
             pipeline.attest_owner_review("run-1", reviewed_by="alice")
         decision = pipeline.merge_decision("run-1")
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}):
             result = pipeline.execute_merge(
                 "run-1", decision_id=decision["audit"]["id"], reviewed_by="alice"
             )
@@ -532,7 +532,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline = self.pipeline(auto_merge=True)
         decision = pipeline.merge_decision("run-1")
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}):
             result = pipeline.execute_merge(
                 "run-1", decision_id=decision["audit"]["id"], reviewed_by="alice"
             )
@@ -557,7 +557,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline = self.pipeline(auto_merge=True, branch_cleanup=True)
         decision = pipeline.merge_decision("run-1")
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}):
             result = pipeline.execute_merge(
                 "run-1", decision_id=decision["audit"]["id"], reviewed_by="alice"
             )
@@ -566,12 +566,12 @@ class MergePipelineTests(unittest.TestCase):
         self.assertTrue(result["cleanup_pending"])
         self.assertEqual(
             result["next_action"],
-            "reposteward branch-cleanup plan owner/repo",
+            "forgesentinel branch-cleanup plan owner/repo",
         )
         self.assertEqual(pipeline.store.executions[-1]["outcome"], "merged")
         self.assertEqual(
             pipeline.store.saved_checkpoints[-1]["payload"]["next_action"],
-            "reposteward branch-cleanup plan owner/repo",
+            "forgesentinel branch-cleanup plan owner/repo",
         )
 
     def test_executor_is_disabled_by_default_and_records_the_block(self) -> None:
@@ -579,7 +579,7 @@ class MergePipelineTests(unittest.TestCase):
         decision = pipeline.merge_decision("run-1")
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}),
             self.assertRaisesRegex(PolicyError, "auto_merge is not explicitly enabled"),
         ):
             pipeline.execute_merge(
@@ -594,7 +594,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.store.usage_read_fails = True
         decision = pipeline.merge_decision("run-1")
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}):
             result = pipeline.execute_merge(
                 "run-1", decision_id=decision["audit"]["id"], reviewed_by="alice"
             )
@@ -614,7 +614,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.activity_marker = "new-review"
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}),
             self.assertRaisesRegex(PolicyError, "decision is stale"),
         ):
             pipeline.execute_merge(
@@ -632,7 +632,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.conversation_marker = "thread-resolution-changed"
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}),
             self.assertRaisesRegex(PolicyError, "decision is stale"),
         ):
             pipeline.execute_merge(
@@ -648,7 +648,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.state = "MERGED"
         pipeline.github.merge_commit_sha = "f" * 40
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}):
             result = pipeline.execute_merge(
                 "run-1", decision_id=decision["audit"]["id"], reviewed_by="alice"
             )
@@ -664,7 +664,7 @@ class MergePipelineTests(unittest.TestCase):
         decision = pipeline.merge_decision("run-1")
         pipeline.github.fail_after_merge = True
 
-        with patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}):
+        with patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}):
             result = pipeline.execute_merge(
                 "run-1", decision_id=decision["audit"]["id"], reviewed_by="alice"
             )
@@ -679,7 +679,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.mutate_on_activity_call = 3
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}),
             self.assertRaisesRegex(PolicyError, "changed during execution"),
         ):
             pipeline.execute_merge(
@@ -698,7 +698,7 @@ class MergePipelineTests(unittest.TestCase):
         pipeline.github.fail_without_merge = True
 
         with (
-            patch.dict(os.environ, {"REPOSTEWARD_ENABLE_MERGE": "1"}),
+            patch.dict(os.environ, {"FORGESENTINEL_ENABLE_MERGE": "1"}),
             self.assertRaisesRegex(PolicyError, "did not merge"),
         ):
             pipeline.execute_merge(

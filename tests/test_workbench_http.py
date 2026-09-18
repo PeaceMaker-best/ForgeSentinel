@@ -13,8 +13,8 @@ from pathlib import Path
 from threading import Thread
 from unittest.mock import Mock
 
-from reposteward.external_tasks import TaskConflict
-from reposteward.web_server import LocalServer
+from forgesentinel.external_tasks import TaskConflict
+from forgesentinel.web_server import LocalServer
 
 
 class WorkbenchHTTPTests(unittest.TestCase):

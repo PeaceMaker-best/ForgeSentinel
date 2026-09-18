@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import unittest
 
-from reposteward.capacity import (
+from forgesentinel.capacity import (
     effective_capacity_limit,
     effective_diff_line_limit,
     pull_request_capacity,
 )
-from reposteward.github import PullRequest
+from forgesentinel.github import PullRequest
 
 
 def _pull(

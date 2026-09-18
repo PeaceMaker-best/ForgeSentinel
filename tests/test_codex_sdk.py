@@ -7,12 +7,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from reposteward.agent import AgentError
-from reposteward.codex_sdk import CodexSdkHarness
-from reposteward.config import AgentConfig, RepositoryPolicy
-from reposteward.context import build_context_pack
-from reposteward.harness import HarnessRequest, create_harness
-from reposteward.models import Candidate, Issue, RepositoryInfo
+from forgesentinel.agent import AgentError
+from forgesentinel.codex_sdk import CodexSdkHarness
+from forgesentinel.config import AgentConfig, RepositoryPolicy
+from forgesentinel.context import build_context_pack
+from forgesentinel.harness import HarnessRequest, create_harness
+from forgesentinel.models import Candidate, Issue, RepositoryInfo
 
 
 def _context(root: Path):

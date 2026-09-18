@@ -17,10 +17,10 @@ ForgeSentinel 的 `understand` 用于先理解整个项目，再缩小到一次�
 ## 开始阅读
 
 ```bash
-reposteward understand scan /path/to/project
-reposteward understand guide /path/to/project --mode contributor
-reposteward understand query /path/to/project 'delivery retry' --limit 8
-reposteward understand guide /path/to/project --format json
+forgesentinel understand scan /path/to/project
+forgesentinel understand guide /path/to/project --mode contributor
+forgesentinel understand query /path/to/project 'delivery retry' --limit 8
+forgesentinel understand guide /path/to/project --format json
 ```
 
 `scan` 是唯一会更新理解缓存的动作；不修改目标仓库。缓存使用独立 JSON 文件，
@@ -53,7 +53,7 @@ reposteward understand guide /path/to/project --format json
 从导览复制 `code:...` 证据 ID，按引用行号继续读：
 
 ```bash
-reposteward understand evidence /path/to/project code:FULL_DIGEST --start-line 40 --limit 80
+forgesentinel understand evidence /path/to/project code:FULL_DIGEST --start-line 40 --limit 80
 ```
 
 `FULL_DIGEST` 是导览返回的 64 位摘要，占位符不能直接运行。证据 ID 同时绑定工作区、文件和内容，

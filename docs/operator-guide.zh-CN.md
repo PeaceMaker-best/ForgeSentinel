@@ -13,10 +13,10 @@ ForgeSentinel 适合需要长期维护 GitHub 项目、在多个 Coding Harness 
 统一审阅记录的维护者和贡献者。它不是批量 PR 机器人，也不会让模型直接持有 GitHub 凭据。
 
 <p align="center">
-  <img src="assets/reposteward-lifecycle.svg" width="100%" alt="ForgeSentinel 工作流：GitHub Issue 经过策略门禁进入 ForgeSentinel，Coding Harness 在无凭据工作区实现修改，隔离 Runner 完成验证，人工审阅后创建 Draft PR，CI 与 Reviewer 反馈再增量回流。">
+  <img src="assets/forgesentinel-lifecycle.svg" width="100%" alt="ForgeSentinel 工作流：GitHub Issue 经过策略门禁进入 ForgeSentinel，Coding Harness 在无凭据工作区实现修改，隔离 Runner 完成验证，人工审阅后创建 Draft PR，CI 与 Reviewer 反馈再增量回流。">
 </p>
 
-<p align="center"><sub>技术图提供可编辑的 <a href="assets/reposteward-lifecycle.excalidraw">Excalidraw 源文件</a>。</sub></p>
+<p align="center"><sub>技术图提供可编辑的 <a href="assets/forgesentinel-lifecycle.excalidraw">Excalidraw 源文件</a>。</sub></p>
 
 ## 一分钟理解
 
@@ -40,7 +40,7 @@ ForgeSentinel 把一次代码维护任务拆成八个可审计步骤：
 | --- | --- |
 | 第一次试用 | [安装](#安装) → [添加项目](#添加项目) → [基本工作流](#基本工作流) |
 | 评估产品边界 | [产品边界](#产品边界) → [架构文档](architecture.md) |
-| 运行指标评测 | [ForgeSentinelBench 指标评测](#repostewardbench-指标评测) |
+| 运行指标评测 | [ForgeSentinelBench 指标评测](#forgesentinelbench-指标评测) |
 | 切换 Harness、账号或机器 | [上下文与跨 Harness 交接](#上下文与跨-harness-交接) |
 | 参与开发 | [贡献指南](../CONTRIBUTING.md) → [安全报告说明](../SECURITY.md) |
 
@@ -80,15 +80,15 @@ Harness 的原生会话只用于加速恢复。版本化 Context Pack 与 Checkp
 git clone https://github.com/PeaceMaker-best/ForgeSentinel.git
 cd ForgeSentinel
 uv sync
-uv run reposteward --help
-uv run reposteward init
+uv run forgesentinel --help
+uv run forgesentinel init
 ```
 
 `init` 默认从当前 `gh auth` 和 Git 全局配置读取登录名、姓名和邮箱，然后将用户配置写入
-`~/.config/reposteward/config.toml`。也可以显式提供身份：
+`~/.config/forgesentinel/config.toml`。也可以显式提供身份：
 
 ```bash
-uv run reposteward init \
+uv run forgesentinel init \
   --login your-github-login \
   --git-name "Your Name" \
   --git-email your-github-login@users.noreply.github.com
@@ -110,7 +110,7 @@ uv sync --extra codex-sdk
 harness = "codex-sdk"
 ```
 
-SDK 适配器不会由项目级 `.reposteward.toml` 静默启用；缺少可选依赖时会明确失败，不会回退到
+SDK 适配器不会由项目级 `.forgesentinel.toml` 静默启用；缺少可选依赖时会明确失败，不会回退到
 其他 Harness。
 
 ## 添加项目
@@ -118,21 +118,21 @@ SDK 适配器不会由项目级 `.reposteward.toml` 静默启用；缺少可选�
 在需要维护或贡献的项目目录运行：
 
 ```bash
-uv run reposteward repo add owner/repository
+uv run forgesentinel repo add owner/repository
 ```
 
 维护自己的仓库时使用维护者模式：
 
 ```bash
-uv run reposteward repo add owner/repository --mode maintainer
+uv run forgesentinel repo add owner/repository --mode maintainer
 ```
 
 贡献者模式默认推送到用户 fork；维护者模式默认推送到原仓库的独立分支。提交前会通过 GitHub
 API 验证当前身份确实拥有 push 权限，并继续禁止直接使用默认分支。
 
-命令会创建本机专用的 `.reposteward.toml`，并自动加入该仓库的 `.git/info/exclude`，不会修改
+命令会创建本机专用的 `.forgesentinel.toml`，并自动加入该仓库的 `.git/info/exclude`，不会修改
 仓库受版本控制的 `.gitignore`，也不会让配置混入后续 PR。随后需要填写该仓库允许的安装和验证命令。完整字段可参考
-[`reposteward.example.toml`](../reposteward.example.toml)，现有复杂仓库适配示例位于
+[`forgesentinel.example.toml`](../forgesentinel.example.toml)，现有复杂仓库适配示例位于
 [`examples/PeaceMaker-best.toml`](../examples/PeaceMaker-best.toml)。
 
 配置按以下顺序合并，后者覆盖前者：
@@ -140,16 +140,16 @@ API 验证当前身份确实拥有 push 权限，并继续禁止直接使用默�
 ```text
 内置安全默认值
       ↓
-~/.config/reposteward/config.toml
+~/.config/forgesentinel/config.toml
       ↓
-项目目录最近的 .reposteward.toml
+项目目录最近的 .forgesentinel.toml
       ↓
 显式命令参数
 ```
 
 旧的 `starfix.toml` 仍可被发现，缺少 `config_version` 的旧配置按版本 1 兼容读取。新配置
-默认把数据库和运行日志隔离到 `~/.local/state/reposteward/<GitHub host>/<login>/`，把临时克隆隔离到
-`~/.local/share/reposteward/workspaces/<GitHub host>/<login>/`；支持 XDG 目录变量，Windows 使用
+默认把数据库和运行日志隔离到 `~/.local/state/forgesentinel/<GitHub host>/<login>/`，把临时克隆隔离到
+`~/.local/share/forgesentinel/workspaces/<GitHub host>/<login>/`；支持 XDG 目录变量，Windows 使用
 `LOCALAPPDATA`。这样不会在被维护的仓库中产生运行文件，也避免切换 GitHub 用户时混用记录。
 旧配置显式指定 `state_dir` 时保持原有工作区布局。项目层不能覆盖用户层的运行目录、GitHub 身份、Agent executable 或 Runner
 image；项目安全设置只能收紧用户限额和默认禁止路径，不能静默放宽它们。
@@ -245,7 +245,7 @@ unlimited_diff_lines = true
 ForgeSentinel 可以在本地生成结构化 Markdown，并只读搜索相似 Issue：
 
 ```bash
-uv run reposteward issue draft owner/repository \
+uv run forgesentinel issue draft owner/repository \
   --title "Watcher 单轮重复读取同一轨迹" \
   --summary "轨迹数量较多时，单轮轮询会重复执行相同读取。" \
   --actual "每个 Atom 都重新读取完整轨迹。" \
@@ -254,24 +254,24 @@ uv run reposteward issue draft owner/repository \
   --acceptance "同一轨迹单轮只读取一次" \
   --language zh
 
-uv run reposteward issue list
-uv run reposteward issue inspect DRAFT_ID
-uv run reposteward issue duplicate-check DRAFT_ID
+uv run forgesentinel issue list
+uv run forgesentinel issue inspect DRAFT_ID
+uv run forgesentinel issue duplicate-check DRAFT_ID
 ```
 
 草稿保存在当前用户和项目隔离的本地数据库中。`duplicate-check` 只调用 GitHub 搜索接口，
 不会创建或修改 Issue。多人协作时，可以把草稿暂存为团队 GitHub Project 中的 Draft Issue：
 
 ```bash
-REPOSTEWARD_ENABLE_ISSUE_STAGE=1 \
-  uv run reposteward issue stage DRAFT_ID --submitted-by your-github-login
+FORGESENTINEL_ENABLE_ISSUE_STAGE=1 \
+  uv run forgesentinel issue stage DRAFT_ID --submitted-by your-github-login
 ```
 
 Project Draft Issue 是线上共享提案，不会出现在目标仓库的正式 Issue 列表。团队可以在线修改正文；
 review 命令始终重新读取线上最新版本，并同时生成重复项快照、安全扫描结果和内容摘要：
 
 ```bash
-uv run reposteward issue review PROJECT_ITEM_ID_OR_URL \
+uv run forgesentinel issue review PROJECT_ITEM_ID_OR_URL \
   --repository owner/repository
 ```
 
@@ -279,8 +279,8 @@ uv run reposteward issue review PROJECT_ITEM_ID_OR_URL \
 摘要进行转换：
 
 ```bash
-REPOSTEWARD_ENABLE_ISSUE_PROMOTION=1 \
-  uv run reposteward issue promote PROJECT_ITEM_ID_OR_URL \
+FORGESENTINEL_ENABLE_ISSUE_PROMOTION=1 \
+  uv run forgesentinel issue promote PROJECT_ITEM_ID_OR_URL \
   --repository owner/repository \
   --reviewed-by reviewer-login \
   --review-digest REVIEW_DIGEST \
@@ -290,7 +290,7 @@ REPOSTEWARD_ENABLE_ISSUE_PROMOTION=1 \
 线上正文、Project、重复项结果或目标仓库发生变化时，旧摘要失效，必须重新 review。默认配置
 `require_distinct_reviewer = true`，禁止提案创建者自行转换；单维护者仓库可在用户配置的
 `[issue_review]` 中显式设为 `false`，或在初始化时使用 `--allow-issue-self-review`，此时同一维护者
-可以通过本地 CLI 审核并转换。该配置属于可信用户层，项目级 `.reposteward.toml` 不能覆盖。附带的
+可以通过本地 CLI 审核并转换。该配置属于可信用户层，项目级 `.forgesentinel.toml` 不能覆盖。附带的
 GitHub Actions 模板仍固定采用默认的团队第二人模式；无论采用哪种模式，最新 digest、重复项确认、
 安全扫描、身份校验、环境开关和独立 promotion 都保持强制。检测到凭据或疑似安全漏洞时必须改用
 私有报告渠道。
@@ -302,23 +302,23 @@ Project 页面 URL 里的数字 `itemId` 也可直接使用，因此不经本地
 构建验证镜像并检查本地环境：
 
 ```bash
-uv run reposteward image build
-uv run reposteward doctor
+uv run forgesentinel image build
+uv run forgesentinel doctor
 ```
 
 发现和查看候选：
 
 ```bash
-uv run reposteward discover
-uv run reposteward discover --repo owner/repository
-uv run reposteward list --all
+uv run forgesentinel discover
+uv run forgesentinel discover --repo owner/repository
+uv run forgesentinel list --all
 ```
 
 批量维护时，可用只读收件箱聚合待审提案、本地运行、CI、Review 和合并检查入口；
 该命令不会调用 Harness，也不会修改工作区或 GitHub：
 
 ```bash
-uv run reposteward inbox --repo owner/repository --format text
+uv run forgesentinel inbox --repo owner/repository --format text
 ```
 
 Portfolio 只读取开放 PR；只有开放快照完整时，当一个 tracked submitted PR 已不在该快照中，
@@ -330,12 +330,12 @@ Inbox 才会在 ForgeSentinel 本地原生合并审计的最新终态精确为 `
 不会执行任务、调用 Harness 或写入 GitHub：
 
 ```bash
-uv run reposteward queue enqueue owner/repository prepare --issue 123 --priority 20
-uv run reposteward queue enqueue owner/repository follow-up --run-id RUN_ID
-uv run reposteward queue enqueue owner/repository submit --issue 123 \
+uv run forgesentinel queue enqueue owner/repository prepare --issue 123 --priority 20
+uv run forgesentinel queue enqueue owner/repository follow-up --run-id RUN_ID
+uv run forgesentinel queue enqueue owner/repository submit --issue 123 \
   --reviewed-by your-github-login --depends-on PREVIOUS_TASK_ID
-uv run reposteward queue inspect --repo owner/repository
-uv run reposteward queue inspect --task-id TASK_ID
+uv run forgesentinel queue inspect --repo owner/repository
+uv run forgesentinel queue inspect --task-id TASK_ID
 ```
 
 同一仓库、动作、稳定引用、参数摘要和依赖的重复 enqueue 返回原任务；需要显式创建新一轮时传入新的
@@ -344,19 +344,19 @@ uv run reposteward queue inspect --task-id TASK_ID
 人工修正后可以显式 retry，未运行或租约已过期的任务可以 cancel：
 
 ```bash
-REPOSTEWARD_ENABLE_QUEUE_APPLY=1 \
-  uv run reposteward queue retry TASK_ID --by your-github-login
+FORGESENTINEL_ENABLE_QUEUE_APPLY=1 \
+  uv run forgesentinel queue retry TASK_ID --by your-github-login
 
-REPOSTEWARD_ENABLE_QUEUE_APPLY=1 \
-  uv run reposteward queue cancel TASK_ID --by your-github-login --reason superseded
+FORGESENTINEL_ENABLE_QUEUE_APPLY=1 \
+  uv run forgesentinel queue cancel TASK_ID --by your-github-login --reason superseded
 ```
 
 执行队列需要独立开关；`submit`、owner attestation 和 `merge` 仍分别要求自己的原有开关与身份门禁，
 队列不会代为开启：
 
 ```bash
-REPOSTEWARD_ENABLE_QUEUE_APPLY=1 \
-  uv run reposteward queue apply --repo owner/repository --limit 4
+FORGESENTINEL_ENABLE_QUEUE_APPLY=1 \
+  uv run forgesentinel queue apply --repo owner/repository --limit 4
 ```
 
 每个任务在慢 Harness、Runner 或 GitHub 调用期间由短 SQLite 事务续租，不持有数据库写锁。进程崩溃
@@ -369,27 +369,27 @@ REPOSTEWARD_ENABLE_QUEUE_APPLY=1 \
 Draft、缺失本地 submitted run、外部 head 变化及不完整事实都会失败关闭：
 
 ```bash
-uv run reposteward batch plan owner/repository --max-parallel 6 --format text
+uv run forgesentinel batch plan owner/repository --max-parallel 6 --format text
 ```
 
 审核该输出后，apply 必须带回精确 digest，并且只把计划写成串行 `batch-advance` 队列任务，不会立即
 修改 workspace 或 GitHub。仓库级写入刻意串行，避免一个 PR 合并后其他 PR 继续消费旧 base：
 
 ```bash
-REPOSTEWARD_ENABLE_BATCH_APPLY=1 \
-  uv run reposteward batch apply owner/repository \
+FORGESENTINEL_ENABLE_BATCH_APPLY=1 \
+  uv run forgesentinel batch apply owner/repository \
   --expected-digest BATCH_DIGEST --reviewed-by your-github-login
 ```
 
 执行这些任务仍需显式开启队列和原有公开写入边界：
 
 ```bash
-REPOSTEWARD_ENABLE_BATCH_APPLY=1 \
-REPOSTEWARD_ENABLE_QUEUE_APPLY=1 \
-REPOSTEWARD_ENABLE_SUBMIT=1 \
-REPOSTEWARD_ENABLE_OWNER_ATTESTATION=1 \
-REPOSTEWARD_ENABLE_MERGE=1 \
-  uv run reposteward queue apply --repo owner/repository --limit 20
+FORGESENTINEL_ENABLE_BATCH_APPLY=1 \
+FORGESENTINEL_ENABLE_QUEUE_APPLY=1 \
+FORGESENTINEL_ENABLE_SUBMIT=1 \
+FORGESENTINEL_ENABLE_OWNER_ATTESTATION=1 \
+FORGESENTINEL_ENABLE_MERGE=1 \
+  uv run forgesentinel queue apply --repo owner/repository --limit 20
 ```
 
 每个任务都会重新读取当前 PR。base 未变化时直接复用 owner attestation、merge decision 和 merge
@@ -401,8 +401,8 @@ HEAD，再标记 `manual_required`，不会自动解决冲突或覆盖维护者�
 检查贡献门禁并准备修复：
 
 ```bash
-uv run reposteward gate owner/repository 123
-uv run reposteward prepare owner/repository 123
+uv run forgesentinel gate owner/repository 123
+uv run forgesentinel prepare owner/repository 123
 ```
 
 `prepare` 会 clone 最新默认分支、运行 Codex、执行 allowlist 中的验证命令、检查 diff，并创建
@@ -416,8 +416,8 @@ Docker socket。
 在同时维护多个 PR 时，可以先生成仓库级只读快照：
 
 ```bash
-uv run reposteward portfolio inspect owner/repository --format text
-uv run reposteward portfolio inspect owner/repository --format json
+uv run forgesentinel portfolio inspect owner/repository --format text
+uv run forgesentinel portfolio inspect owner/repository --format json
 ```
 
 命令会完整分页读取全部开放 PR，再汇总每个 PR 的 head/base、Draft 状态、changed files、diff
@@ -429,7 +429,7 @@ uv run reposteward portfolio inspect owner/repository --format json
 上一次摘要：
 
 ```bash
-uv run reposteward portfolio inspect owner/repository \
+uv run forgesentinel portfolio inspect owner/repository \
   --expected-digest SNAPSHOT_DIGEST \
   --format text
 ```
@@ -446,7 +446,7 @@ Depends on #123
 生成依赖图、循环检测和确定性建议顺序：
 
 ```bash
-uv run reposteward portfolio plan owner/repository --format text
+uv run forgesentinel portfolio plan owner/repository --format text
 ```
 
 PR 正文的显式声明和维护者确认属于权威边；changed-file 重叠只显示为无方向建议，不能单独阻止
@@ -461,15 +461,15 @@ Ready 或 merge。缺失、跨仓库、未合并或循环依赖会进入 `ready_
 确认；撤销会追加新事件，不覆盖历史：
 
 ```bash
-REPOSTEWARD_ENABLE_DEPENDENCY_ATTESTATION=1 \
-  uv run reposteward portfolio dependency confirm owner/repository 124 123 \
+FORGESENTINEL_ENABLE_DEPENDENCY_ATTESTATION=1 \
+  uv run forgesentinel portfolio dependency confirm owner/repository 124 123 \
   --reviewed-by your-github-login
 
-REPOSTEWARD_ENABLE_DEPENDENCY_ATTESTATION=1 \
-  uv run reposteward portfolio dependency revoke owner/repository 124 123 \
+FORGESENTINEL_ENABLE_DEPENDENCY_ATTESTATION=1 \
+  uv run forgesentinel portfolio dependency revoke owner/repository 124 123 \
   --reviewed-by your-github-login
 
-uv run reposteward portfolio dependency list owner/repository --pull-number 124
+uv run forgesentinel portfolio dependency list owner/repository --pull-number 124
 ```
 
 该操作要求 Maintainer same-repository 配置，并同时核对配置身份、GitHub token 身份和仓库 push 权限；
@@ -481,9 +481,9 @@ uv run reposteward portfolio dependency list owner/repository --pull-number 124
 状态、日志路径和 Agent token 使用量，不会默认携带完整测试输出。
 
 ```bash
-uv run reposteward inspect RUN_ID
-uv run reposteward logs RUN_ID
-uv run reposteward logs RUN_ID --command 1 --tail-chars 12000
+uv run forgesentinel inspect RUN_ID
+uv run forgesentinel logs RUN_ID
+uv run forgesentinel logs RUN_ID --command 1 --tail-chars 12000
 ```
 
 验证日志默认保存在用户状态目录的 `runs/RUN_ID/verification/`。通过命令在数据库中保留最后
@@ -499,8 +499,8 @@ token，并记录工具调用次数；CLI 适配器还记录事件流大小。�
 按仓库与 Issue 读取本地生命周期事实：
 
 ```bash
-uv run reposteward trace owner/repository 40 --format text
-uv run reposteward trace owner/repository 40 --format json --limit 200
+uv run forgesentinel trace owner/repository 40 --format text
+uv run forgesentinel trace owner/repository 40 --format json --limit 200
 ```
 
 Trace 使用版本化 JSON 契约，把同一 work item 的 successor runs、Context Pack、Checkpoint、
@@ -532,15 +532,15 @@ Checkpoint 来源标记为 `derived_review_required`，导入来源标记为 `im
 按 Issue、PR、阶段、Harness、模型或日期查看机器可读汇总：
 
 ```bash
-uv run reposteward usage report owner/repository
-uv run reposteward usage report owner/repository --issue 40 --group-by stage
-uv run reposteward usage report owner/repository --pull-number 41 --include-runs
-uv run reposteward usage report owner/repository \
+uv run forgesentinel usage report owner/repository
+uv run forgesentinel usage report owner/repository --issue 40 --group-by stage
+uv run forgesentinel usage report owner/repository --pull-number 41 --include-runs
+uv run forgesentinel usage report owner/repository \
   --since 2026-08-01 --until 2026-08-31 --group-by model
 ```
 
 原始用量不依赖价格配置。需要估算成本时，在用户配置中维护带生效日期的每百万 token 单价；这些
-数据不会接受仓库内 `.reposteward.toml` 覆盖：
+数据不会接受仓库内 `.forgesentinel.toml` 覆盖：
 
 ```toml
 [[observability.prices]]
@@ -566,7 +566,7 @@ ForgeSentinelBench v0 把已有安全、上下文、项目管理、恢复和规�
 机器可读报告：
 
 ```bash
-uv run reposteward benchmark run --output .artifacts/benchmark.json
+uv run forgesentinel benchmark run --output .artifacts/benchmark.json
 ```
 
 报告使用 `benchmark-report-v1` schema，包含 suite/benchmark 版本、git SHA、Python 与平台环境、
@@ -577,11 +577,11 @@ uv run reposteward benchmark run --output .artifacts/benchmark.json
 可以缩小范围，或与先前保存的报告比较：
 
 ```bash
-uv run reposteward benchmark run --category safety --category recovery
-uv run reposteward benchmark run \
+uv run forgesentinel benchmark run --category safety --category recovery
+uv run forgesentinel benchmark run \
   --scenario context.events_10000_bounded \
   --repeat 3
-uv run reposteward benchmark run \
+uv run forgesentinel benchmark run \
   --baseline .artifacts/previous.json \
   --output .artifacts/current.json
 ```
@@ -608,9 +608,9 @@ uv run reposteward benchmark run \
 查看或导出可移植上下文：
 
 ```bash
-uv run reposteward context inspect RUN_ID
-uv run reposteward context export RUN_ID --output handoff.json
-uv run reposteward context import handoff.json
+uv run forgesentinel context inspect RUN_ID
+uv run forgesentinel context export RUN_ID --output handoff.json
+uv run forgesentinel context import handoff.json
 ```
 
 导出文件包含内容摘要和估算 token 数，不包含账号凭据。更换 Codex 账号、机器或 Coding
@@ -628,15 +628,15 @@ Context Pack、Checkpoint 和导出包采用 Draft 2020-12 JSON Schema，并在�
 ## 项目级 Skills
 
 ForgeSentinel 使用 `.agents/skills/<name>/SKILL.md` 保存可跨 Coding Harness 复用的维护流程。本仓库
-提供的 `reposteward-maintainer` skill 覆盖 Issue 审核、聚焦 PR、CI/Reviewer 跟进和上下文交接；
-`reposteward-branch-cleanup` skill 用于盘点已合并 PR 留下的远端分支，并在明确授权后清理精确
+提供的 `forgesentinel-maintainer` skill 覆盖 Issue 审核、聚焦 PR、CI/Reviewer 跟进和上下文交接；
+`forgesentinel-branch-cleanup` skill 用于盘点已合并 PR 留下的远端分支，并在明确授权后清理精确
 匹配的同仓库 head。状态机、凭据隔离、内容摘要、验证与已有 GitHub 公开写入门禁不会由 skill
 放宽。
 
 原生分支清理默认只输出计划，不执行删除：
 
 ```bash
-uv run reposteward branch-cleanup plan owner/repository --format text
+uv run forgesentinel branch-cleanup plan owner/repository --format text
 ```
 
 计划从 SQLite 中读取全部有界 submitted run、成功合并审计和未完成清理意图，只把当前
@@ -646,8 +646,8 @@ SHA 与已合并 PR head 精确一致、且该名称没有其他 PR 历史的非
 显式设置 `branch_cleanup = true`、独立环境门禁、相同摘要和实际 GitHub 身份：
 
 ```bash
-REPOSTEWARD_ENABLE_BRANCH_CLEANUP=1 \
-  uv run reposteward branch-cleanup apply owner/repository \
+FORGESENTINEL_ENABLE_BRANCH_CLEANUP=1 \
+  uv run forgesentinel branch-cleanup apply owner/repository \
   --expected-digest PLAN_DIGEST --reviewed-by GITHUB_LOGIN
 ```
 
@@ -677,8 +677,8 @@ Checkpoint 保持独立的 v1 协议。
 公开提交必须使用独立命令，并同时满足环境开关、GitHub 实际身份和人工审阅声明：
 
 ```bash
-REPOSTEWARD_ENABLE_SUBMIT=1 \
-  uv run reposteward submit owner/repository 123 \
+FORGESENTINEL_ENABLE_SUBMIT=1 \
+  uv run forgesentinel submit owner/repository 123 \
   --reviewed-by your-github-login
 ```
 
@@ -693,9 +693,9 @@ REPOSTEWARD_ENABLE_SUBMIT=1 \
 提交后可以增量查看变化：
 
 ```bash
-uv run reposteward follow-up RUN_ID
-uv run reposteward repair RUN_ID
-uv run reposteward merge-decision RUN_ID
+uv run forgesentinel follow-up RUN_ID
+uv run forgesentinel repair RUN_ID
+uv run forgesentinel merge-decision RUN_ID
 ```
 
 第一次调用会把 PR、评论、Review、Review comment 和 checks 按稳定 ID 与内容版本写入事件表，
@@ -725,7 +725,7 @@ UTF-8 字节安全截断，初次 `prepare` 语义不变；若仍超限，会先
 失败 check 可以先用确定性 CI 诊断读取，而不立即把日志发送给 Harness 或盲目重跑：
 
 ```bash
-uv run reposteward ci diagnose owner/repository 123
+uv run forgesentinel ci diagnose owner/repository 123
 ```
 
 该命令完整分页读取目标 workflow run 的 job/step 元数据，只对当前失败 job 及同 job/platform 的
@@ -760,8 +760,8 @@ bypass；Contributor、外部作者、非受管分支或要求独立 Reviewer �
 仍然拒绝。先等待 CI 完成并人工检查精确 diff，再单独追加声明：
 
 ```bash
-REPOSTEWARD_ENABLE_OWNER_ATTESTATION=1 \
-  uv run reposteward merge-attest RUN_ID --reviewed-by your-github-login
+FORGESENTINEL_ENABLE_OWNER_ATTESTATION=1 \
+  uv run forgesentinel merge-attest RUN_ID --reviewed-by your-github-login
 ```
 
 声明绑定 repository、PR、run、作者、受管分支、head/base、policy、diff、checks、Review、会话、
@@ -773,8 +773,8 @@ push 权限时均失败关闭。声明只写本地追加审计，且还需要下
 决策和 `audit.id`，再显式执行：
 
 ```bash
-REPOSTEWARD_ENABLE_MERGE=1 \
-  uv run reposteward merge RUN_ID \
+FORGESENTINEL_ENABLE_MERGE=1 \
+  uv run forgesentinel merge RUN_ID \
   --decision-id MERGE_DECISION_AUDIT_ID \
   --reviewed-by your-github-login
 ```
@@ -788,8 +788,8 @@ Reviewer 回复、伪造 Approval、admin bypass 和自动开启 GitHub auto-mer
 本地占用可以按仓库、数据类别和时间范围只读查看：
 
 ```bash
-uv run reposteward storage stats
-uv run reposteward storage stats --repo owner/repository --since-days 30
+uv run forgesentinel storage stats
+uv run forgesentinel storage stats --repo owner/repository --since-days 30
 ```
 
 输出分别给出逻辑载荷字节、验证日志缓存、隔离工作区和 SQLite/WAL/SHM 的实际文件字节。工作区
@@ -799,7 +799,7 @@ uv run reposteward storage stats --repo owner/repository --since-days 30
 清理命令默认只生成精确计划，不写数据库或删除文件：
 
 ```bash
-uv run reposteward storage gc --repo owner/repository
+uv run forgesentinel storage gc --repo owner/repository
 ```
 
 验证日志候选必须超过用户级 `cache_retention_days` 且已有终态 Checkpoint。工作区候选必须超过
@@ -813,7 +813,7 @@ submitted run 或远端引用证明可恢复；活跃、未知、脏、未推送
 实际应用需要命令参数和独立环境开关同时存在：
 
 ```bash
-REPOSTEWARD_ENABLE_GC=1 uv run reposteward storage gc \
+FORGESENTINEL_ENABLE_GC=1 uv run forgesentinel storage gc \
   --repo owner/repository --apply
 ```
 
@@ -840,20 +840,20 @@ apply 前会追加 `applying` 审计；每个工作区在删除前会重新扫�
 ## 名称迁移
 
 项目原名为 Starfix。由于 PyPI 已存在活跃的 `starfix` 包，且 GitHub 上已有同名开发工具，
-公开产品改名为 ForgeSentinel：Python distribution 和 CLI 均使用 `reposteward`，建议 GitHub
+公开产品改名为 ForgeSentinel：Python distribution 和 CLI 均使用 `forgesentinel`，建议 GitHub
 仓库使用 `repo-steward`。旧状态目录和 `starfix.sqlite3` 数据库仍会被兼容读取。
 
 ## 关联已经在本地开发的项目
 
-在项目 clone 或 worktree 中执行 `reposteward project link .`，即可登记本机
+在项目 clone 或 worktree 中执行 `forgesentinel project link .`，即可登记本机
 工作区。命令返回稳定的项目 ID 和工作区 binding ID。相同 GitHub 仓库的多个
 clone/worktree 共用项目身份，各自保留工作区身份；子目录会解析到 Git 根目录。
 
 ```bash
-reposteward project link /path/to/project --name 我的项目
-reposteward project inspect /path/to/project
-reposteward project list --limit 50
-reposteward project unlink <binding-id>
+forgesentinel project link /path/to/project --name 我的项目
+forgesentinel project inspect /path/to/project
+forgesentinel project list --limit 50
+forgesentinel project unlink <binding-id>
 ```
 
 `inspect` 检查关联是否仍匹配，并显示当前 HEAD、分支和 dirty 状态。移动目录后
@@ -915,7 +915,7 @@ Issue 必须仍满足当前贡献门禁，工作区须干净，HEAD/base/policy 
 
 修复继续使用未处理反馈、隔离 Harness 和加固验证器，结果只进入本地 ready。
 检查新提交后另行 `submit --reviewed-by <login>`，仍需
-`REPOSTEWARD_ENABLE_SUBMIT=1`。提交前重新核对 head 归属和冻结事实；原提交的审阅
+`FORGESENTINEL_ENABLE_SUBMIT=1`。提交前重新核对 head 归属和冻结事实；原提交的审阅
 记录不作为新提交的审阅。Contributor fork 修复路径保留。
 
 ## 在自己启动的 Agent 中开发
@@ -923,11 +923,11 @@ Issue 必须仍满足当前贡献门禁，工作区须干净，HEAD/base/policy 
 先关联项目，在独立 feature branch 上为已审阅的开放 Issue 开工：
 
 ```bash
-reposteward project link /path/to/project
-reposteward task start /path/to/project --issue 123 --reviewed-by your-login
-reposteward task context <run-id> --format markdown
-reposteward task current /path/to/project --format markdown
-reposteward task inspect <run-id> --live
+forgesentinel project link /path/to/project
+forgesentinel task start /path/to/project --issue 123 --reviewed-by your-login
+forgesentinel task context <run-id> --format markdown
+forgesentinel task current /path/to/project --format markdown
+forgesentinel task inspect <run-id> --live
 ```
 
 `start` 在线核对 Issue 的贡献门禁和本地 origin 基线，保存开发前的契约、指导来源、
@@ -949,7 +949,7 @@ HEAD/base/policy 和快照。它不启动模型，也不修改源代码。源码
 用 `task inspect --live` 返回的 revision 与 current_snapshot.digest 保存检查点：
 
 ```bash
-reposteward task checkpoint <run-id> --expected-revision 0 \
+forgesentinel task checkpoint <run-id> --expected-revision 0 \
   --expected-snapshot <digest> --idempotency-key investigation-1 --input checkpoint.json
 ```
 
@@ -964,15 +964,15 @@ reposteward task checkpoint <run-id> --expected-revision 0 \
 先 `project link`，再为所用客户端预览全部写入路径和片段：
 
 ```bash
-reposteward integration plan /path/to/project --client codex
-reposteward integration apply /path/to/project --client codex --plan-digest <digest>
-reposteward integration inspect /path/to/project
-reposteward integration plan /path/to/project --client codex --revert
-reposteward integration revert /path/to/project --client codex --plan-digest <digest>
+forgesentinel integration plan /path/to/project --client codex
+forgesentinel integration apply /path/to/project --client codex --plan-digest <digest>
+forgesentinel integration inspect /path/to/project
+forgesentinel integration plan /path/to/project --client codex --revert
+forgesentinel integration revert /path/to/project --client codex --plan-digest <digest>
 ```
 
 客户端选项为 `codex`、`claude-code`、`copilot-vscode`。三者共用
-`.agents/reposteward-context.md` 的通用 CLI 指引，分别在 `AGENTS.md`、`CLAUDE.md`
+`.agents/forgesentinel-context.md` 的通用 CLI 指引，分别在 `AGENTS.md`、`CLAUDE.md`
 和 `.github/copilot-instructions.md` 追加受管理片段。任务数据仍从当前工作区的
 `task current` 读取，指引不包含 run ID、本机数据库路径或其他项目上下文。
 
@@ -993,7 +993,7 @@ Copilot 此处专指 VS Code：生成仓库指引，并提供显式 `#file:` 引
 ## 验证外部开发快照和取回证据
 
 外部 Agent 只能选择用户配置中的验证方案，不能提交任意命令。将方案放在用户自己的
-`~/.config/reposteward/config.toml`；项目文件中同名配置不生效：
+`~/.config/forgesentinel/config.toml`；项目文件中同名配置不生效：
 
 ```toml
 [[verification_profiles]]
@@ -1009,13 +1009,13 @@ commands = ["uv run python -m unittest discover -s tests -v"]
 未提交快照；这份证据不会把任务改为 ready，最终仍走干净提交的 adopt 和独立审阅。
 
 ```bash
-reposteward verification profiles <run-id>
-reposteward task inspect <run-id> --live
-reposteward verification request <run-id> --profile test --expected-revision 0 \
+forgesentinel verification profiles <run-id>
+forgesentinel task inspect <run-id> --live
+forgesentinel verification request <run-id> --profile test --expected-revision 0 \
   --expected-snapshot <current-snapshot-digest> --idempotency-key test-1
-reposteward verification list <run-id> --limit 20
-reposteward verification inspect <run-id> verification:<id> --live
-reposteward verification evidence <run-id> log:<id>:0 --offset 0 --limit 8000
+forgesentinel verification list <run-id> --limit 20
+forgesentinel verification inspect <run-id> verification:<id> --live
+forgesentinel verification evidence <run-id> log:<id>:0 --offset 0 --limit 8000
 ```
 
 证据绑定 run、检查点版本、HEAD、base、策略、验证方案和实际源码快照。相同 key
@@ -1034,8 +1034,8 @@ STDIO 服务；它只服务启动时绑定的一个工作区：
 
 ```bash
 uv sync --extra mcp
-reposteward mcp config /path/to/project --client codex
-reposteward mcp serve /path/to/project
+forgesentinel mcp config /path/to/project --client codex
+forgesentinel mcp serve /path/to/project
 ```
 
 `config` 为 Codex、Claude Code 或 Copilot VS Code 输出各自的配置片段，不写客户端
@@ -1072,12 +1072,12 @@ MCP 与 CLI 调用相同的任务和验证服务，检查点同样要求 revisio
 ```
 
 ```bash
-reposteward knowledge propose <run-id> --input knowledge.json
-reposteward knowledge promote <run-id> <knowledge-id> --reviewed-by your-login \
+forgesentinel knowledge propose <run-id> --input knowledge.json
+forgesentinel knowledge promote <run-id> <knowledge-id> --reviewed-by your-login \
   --basis verification_evidence --verification-id verification:<id> --rationale "说明哪些测试支持这条经验"
-reposteward knowledge list <run-id> --scope-path src --limit 5
-reposteward knowledge inspect <run-id> <knowledge-id> --live
-reposteward task context <run-id> --scope-path src --format markdown
+forgesentinel knowledge list <run-id> --scope-path src --limit 5
+forgesentinel knowledge inspect <run-id> <knowledge-id> --live
+forgesentinel task context <run-id> --scope-path src --format markdown
 ```
 
 审阅后状态为 `reviewed`，依据始终明确区分 `human_confirmation` 和
@@ -1106,9 +1106,9 @@ reposteward task context <run-id> --scope-path src --format markdown
 ## 多项目待办
 
 ```bash
-reposteward overview show --project-limit 10 --item-limit 10 --format text
-reposteward overview refresh --project-limit 10 --item-limit 10
-reposteward overview show --previous-digest <digest>
+forgesentinel overview show --project-limit 10 --item-limit 10 --format text
+forgesentinel overview refresh --project-limit 10 --item-limit 10
+forgesentinel overview show --previous-digest <digest>
 ```
 
 默认只读已关联且配置启用的本机项目，展示本地任务与缓存的 PR 状态，不认证 GitHub、

@@ -17,12 +17,12 @@ import test_external_tasks
 from test_env_template_booleans import DECLARATION, TEMPLATE, configuration
 from test_projects import git
 
-from reposteward.cli import main
-from reposteward.config import ConfigError, VerificationProfile, load_config
-from reposteward.external_tasks import TaskConflict
-from reposteward.external_verification import ExternalVerification
-from reposteward.models import CommandResult
-from reposteward.verifier import (
+from forgesentinel.cli import main
+from forgesentinel.config import ConfigError, VerificationProfile, load_config
+from forgesentinel.external_tasks import TaskConflict
+from forgesentinel.external_verification import ExternalVerification
+from forgesentinel.models import CommandResult
+from forgesentinel.verifier import (
     DockerVerifier,
     VerificationCancelled,
     VerificationError,
@@ -373,8 +373,8 @@ class ExternalVerificationTests(unittest.TestCase):
         self.request()
         output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=self.config),
-            patch("reposteward.cli.Pipeline", side_effect=AssertionError("Pipeline")),
+            patch("forgesentinel.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.Pipeline", side_effect=AssertionError("Pipeline")),
             redirect_stdout(output),
         ):
             self.assertEqual(main(["verification", "list", self.task["run_id"]]), 0)
@@ -390,7 +390,7 @@ class ExternalVerificationTests(unittest.TestCase):
         timeout = subprocess.TimeoutExpired(["docker"], 1, output=b"partial")
         with (
             patch(
-                "reposteward.verifier.subprocess.run",
+                "forgesentinel.verifier.subprocess.run",
                 side_effect=[timeout, subprocess.CompletedProcess([], 0)],
             ) as run,
             patch.dict(os.environ, {"GITHUB_TOKEN": "sentinel-never-forward"}),

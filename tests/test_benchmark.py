@@ -10,14 +10,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from reposteward.benchmark import (
+from forgesentinel.benchmark import (
     BENCHMARK_CATEGORIES,
     benchmark_manifest,
     run_benchmark,
     validate_benchmark_report,
 )
-from reposteward.cli import main
-from reposteward.handoff_benchmark import handoff_gold, observe_handoff
+from forgesentinel.cli import main
+from forgesentinel.handoff_benchmark import handoff_gold, observe_handoff
 
 
 class ForgeSentinelBenchTests(unittest.TestCase):
@@ -46,7 +46,7 @@ class ForgeSentinelBenchTests(unittest.TestCase):
         identifiers = [value["id"] for value in manifest["scenarios"]]
 
         self.assertEqual(manifest["schema_version"], 1)
-        self.assertEqual(manifest["suite_id"], "repostewardbench-v0")
+        self.assertEqual(manifest["suite_id"], "forgesentinelbench-v0")
         self.assertEqual(tuple(manifest["categories"]), BENCHMARK_CATEGORIES)
         self.assertEqual(len(identifiers), len(set(identifiers)))
 
@@ -124,7 +124,7 @@ class ForgeSentinelBenchTests(unittest.TestCase):
         wrong["open_work"] = []
         with (
             patch.dict(
-                "reposteward.handoff_benchmark.OBSERVERS",
+                "forgesentinel.handoff_benchmark.OBSERVERS",
                 {"late_bundle": lambda: wrong},
             ),
             self.assertRaisesRegex(AssertionError, "open_work"),

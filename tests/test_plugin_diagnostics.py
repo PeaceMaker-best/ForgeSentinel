@@ -14,11 +14,11 @@ from unittest.mock import patch
 
 from test_projects import repository
 
-from reposteward.cli import main
-from reposteward.config import load_config
-from reposteward.plugin_bundle import MANIFEST, PluginBundle
-from reposteward.plugin_diagnostics import FILES, MAX_FILE_BYTES, PluginDiagnostics
-from reposteward.projects import ProjectRegistry, canonical_digest
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
+from forgesentinel.plugin_bundle import MANIFEST, PluginBundle
+from forgesentinel.plugin_diagnostics import FILES, MAX_FILE_BYTES, PluginDiagnostics
+from forgesentinel.projects import ProjectRegistry, canonical_digest
 
 
 class PluginDiagnosticsTests(unittest.TestCase):
@@ -36,7 +36,7 @@ class PluginDiagnosticsTests(unittest.TestCase):
         self.config = load_config(path)
         self.registry = ProjectRegistry(self.config.state_dir / "projects.sqlite3")
         self.registry.link(self.repo)
-        self.bundle = self.root / "reposteward-test"
+        self.bundle = self.root / "forgesentinel-test"
         service = PluginBundle(self.config)
         plan = service.plan(self.repo, output=self.bundle)
         service.export(self.repo, output=self.bundle, plan_digest=plan["plan_digest"])
@@ -64,7 +64,7 @@ class PluginDiagnosticsTests(unittest.TestCase):
                     "plugins": [
                         {
                             "name": self.bundle.name,
-                            "source": {"source": "local", "path": "./reposteward-test"},
+                            "source": {"source": "local", "path": "./forgesentinel-test"},
                             "policy": {
                                 "installation": installation,
                                 "authentication": "ON_INSTALL",
@@ -77,7 +77,7 @@ class PluginDiagnosticsTests(unittest.TestCase):
         )
         self.home.mkdir(exist_ok=True)
         (self.home / "config.toml").write_text(
-            '[plugins."reposteward-test@personal"]\n'
+            '[plugins."forgesentinel-test@personal"]\n'
             f"enabled = {str(enabled).lower()}\n"
             '[plugins.other]\nprivate_setting = "DO-NOT-EMIT"\n'
         )
@@ -85,11 +85,11 @@ class PluginDiagnosticsTests(unittest.TestCase):
     def test_offline_read_only_plan_and_exact_cache_do_not_claim_client_health(self):
         self.register()
         version = json.loads((self.bundle / MANIFEST).read_text())["version"]
-        cache = self.home / "plugins/cache/personal/reposteward-test" / version
+        cache = self.home / "plugins/cache/personal/forgesentinel-test" / version
         shutil.copytree(self.bundle, cache)
         before = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         with patch(
-            "reposteward.github.GitHubClient", side_effect=AssertionError("offline")
+            "forgesentinel.github.GitHubClient", side_effect=AssertionError("offline")
         ):
             report = self.doctor()
             plan = self.service.install_plan(self.repo, **self.kwargs)
@@ -101,7 +101,7 @@ class PluginDiagnosticsTests(unittest.TestCase):
         self.assertEqual(report["actual_session_validation"], "not_run")
         self.assertEqual(
             plan["steps"][1]["argv"],
-            ["codex", "plugin", "add", "reposteward-test@personal"],
+            ["codex", "plugin", "add", "forgesentinel-test@personal"],
         )
         self.assertNotIn("DO-NOT-EMIT", json.dumps(plan))
         self.assertEqual(
@@ -113,7 +113,7 @@ class PluginDiagnosticsTests(unittest.TestCase):
 
     def test_default_personal_marketplace_is_not_explicitly_added(self):
         self.register()
-        with patch("reposteward.plugin_diagnostics.Path.home", return_value=self.root):
+        with patch("forgesentinel.plugin_diagnostics.Path.home", return_value=self.root):
             plan = self.service.install_plan(self.repo, **self.kwargs)
         self.assertEqual(plan["steps"][0]["action"], "install")
 
@@ -147,11 +147,11 @@ class PluginDiagnosticsTests(unittest.TestCase):
         report = self.doctor()
         self.assertTrue(report["bundle_compatible"])
         self.assertEqual(self.status(report, "configuration_snapshot"), "warning")
-        with patch("reposteward.plugin_bundle._runtime_digest", return_value="changed"):
+        with patch("forgesentinel.plugin_bundle._runtime_digest", return_value="changed"):
             report = self.doctor()
         self.assertEqual(self.status(report, "runtime_matches"), "error")
         with patch(
-            "reposteward.plugin_diagnostics.importlib.util.find_spec", return_value=None
+            "forgesentinel.plugin_diagnostics.importlib.util.find_spec", return_value=None
         ):
             report = self.doctor()
         self.assertEqual(self.status(report, "mcp_available"), "error")
@@ -255,7 +255,7 @@ class PluginDiagnosticsTests(unittest.TestCase):
                 if change == "duplicate":
                     value["plugins"].append(entry)
                 elif change == "traversal":
-                    value["plugins"][0]["source"]["path"] = "./../reposteward-test"
+                    value["plugins"][0]["source"]["path"] = "./../forgesentinel-test"
                 elif change == "wrong_root":
                     value["plugins"][0]["source"]["path"] = "./repo"
                 elif change == "bad_name":

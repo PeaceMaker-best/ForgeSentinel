@@ -11,7 +11,7 @@ SCRIPT = (
     Path(__file__).parents[1]
     / ".agents"
     / "skills"
-    / "reposteward-branch-cleanup"
+    / "forgesentinel-branch-cleanup"
     / "scripts"
     / "branch_cleanup.py"
 )
@@ -199,7 +199,7 @@ class BranchCleanupSkillTests(unittest.TestCase):
             client, [managed("a" * 32, "merged", "a" * 40, 7)]
         )
         with self.assertRaisesRegex(
-            branch_cleanup.BranchCleanupError, "REPOSTEWARD_ENABLE_BRANCH_CLEANUP"
+            branch_cleanup.BranchCleanupError, "FORGESENTINEL_ENABLE_BRANCH_CLEANUP"
         ):
             branch_cleanup.apply_plan(
                 client,
@@ -228,7 +228,7 @@ class BranchCleanupSkillTests(unittest.TestCase):
             )
         self.assertEqual(client.deleted, [])
 
-    def test_selected_runs_are_bound_from_local_reposteward_records(self) -> None:
+    def test_selected_runs_are_bound_from_local_forgesentinel_records(self) -> None:
         usage = {
             "runs": [
                 {

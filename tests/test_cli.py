@@ -8,8 +8,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
 
-from reposteward.cli import main
-from reposteward.config import load_config
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
 
 
 class CliSetupTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class CliSetupTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             user = root / "user.toml"
-            project = root / "project" / ".reposteward.toml"
+            project = root / "project" / ".forgesentinel.toml"
             project.parent.mkdir()
             output = io.StringIO()
 
@@ -86,8 +86,8 @@ class CliSetupTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             config_home = root / "config"
-            user = config_home / "reposteward" / "config.toml"
-            project = root / "project" / ".reposteward.toml"
+            user = config_home / "forgesentinel" / "config.toml"
+            project = root / "project" / ".forgesentinel.toml"
             project.parent.mkdir()
             initialize_args = [
                 "init",
@@ -170,8 +170,8 @@ class CliSetupTests(unittest.TestCase):
         json_output = io.StringIO()
         text_output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
         ):
             with redirect_stdout(json_output):
                 json_code = main(["portfolio", "inspect", "owner/repo"])
@@ -215,8 +215,8 @@ class CliSetupTests(unittest.TestCase):
         dependency_output = io.StringIO()
         list_output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
         ):
             with redirect_stdout(plan_output):
                 plan_code = main(
@@ -296,8 +296,8 @@ class CliSetupTests(unittest.TestCase):
         text_output = io.StringIO()
         apply_output = io.StringIO()
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
         ):
             with redirect_stdout(text_output):
                 plan_code = main(
@@ -339,8 +339,8 @@ class CliSetupTests(unittest.TestCase):
         output = io.StringIO()
 
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
             redirect_stdout(output),
         ):
             code = main(["ci", "diagnose", "owner/repo", "12"])
@@ -368,11 +368,11 @@ class CliSetupTests(unittest.TestCase):
         text_output = io.StringIO()
 
         with (
-            patch("reposteward.cli.load_config", return_value=config),
+            patch("forgesentinel.cli.load_config", return_value=config),
             patch(
-                "reposteward.cli.build_lifecycle_trace", return_value=result
+                "forgesentinel.cli.build_lifecycle_trace", return_value=result
             ) as build_trace,
-            patch("reposteward.cli.Pipeline") as pipeline,
+            patch("forgesentinel.cli.Pipeline") as pipeline,
         ):
             with redirect_stdout(json_output):
                 json_code = main(["trace", "owner/repo", "7", "--limit", "12"])
@@ -397,8 +397,8 @@ class CliSetupTests(unittest.TestCase):
         pipeline.run_logs.return_value = {"logs": [], "public_write": False}
 
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
             redirect_stdout(io.StringIO()),
         ):
             list_code = main(["logs", "run-1"])
@@ -428,8 +428,8 @@ class CliSetupTests(unittest.TestCase):
         text_output = io.StringIO()
 
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
         ):
             with redirect_stdout(json_output):
                 json_code = main(["inbox", "--repo", "owner/repo"])
@@ -464,8 +464,8 @@ class CliSetupTests(unittest.TestCase):
         pipeline.apply_queue.return_value = {"outcomes": [], "public_write": False}
 
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
             redirect_stdout(io.StringIO()),
         ):
             enqueue_code = main(
@@ -542,8 +542,8 @@ class CliSetupTests(unittest.TestCase):
         }
 
         with (
-            patch("reposteward.cli.load_config", return_value=object()),
-            patch("reposteward.cli.Pipeline", return_value=pipeline),
+            patch("forgesentinel.cli.load_config", return_value=object()),
+            patch("forgesentinel.cli.Pipeline", return_value=pipeline),
             redirect_stdout(io.StringIO()),
         ):
             plan_code = main(["batch", "plan", "owner/repo", "--max-parallel", "6"])

@@ -1,0 +1,102 @@
+config_version = 1
+
+[project]
+state_dir = "~/.local/state/forgesentinel"
+workspace_dir = "~/.local/share/forgesentinel/workspaces"
+namespace_state = true
+
+[github]
+login = "your-github-login"
+git_name = "Your Name"
+git_email = "your-github-login@users.noreply.github.com"
+sign_commits = false
+signoff_commits = true
+
+[issue_review]
+project_owner = "your-github-login-or-organization"
+project_number = 1
+project_owner_type = "user"
+# Keep this true for team repositories. A single maintainer may explicitly set
+# it to false only in the trusted per-user configuration.
+require_distinct_reviewer = true
+
+[discovery]
+min_score = 30
+preferred_labels = ["good first issue", "help wanted", "bug", "documentation"]
+
+[safety]
+max_active_pull_requests = 4
+max_files_changed = 40
+max_diff_lines = 2000
+require_verification = true
+draft_pull_requests = true
+
+# Only the trusted per-user configuration may allow tracked source files under
+# a sensitive directory name. Repository-local configuration cannot add entries.
+[safety.tracked_sensitive_paths]
+"makecindy/cindy" = ["apps/desktop/src/main/secrets/"]
+
+[agent]
+harness = "codex-cli"
+executable = "codex"
+timeout_seconds = 1800
+
+[runner]
+image = "forgesentinel-runner:latest"
+timeout_seconds = 1800
+cpus = 4
+memory = "8g"
+
+[storage]
+cache_retention_days = 30
+workspace_retention_days = 30
+max_gc_items = 1000
+
+[context]
+follow_up_max_tokens = 24000
+
+# Optional user-owned, dated rates per one million tokens. Repository-local
+# configuration cannot override this section. Replace these example values.
+# [[observability.prices]]
+# harness = "codex-sdk"
+# model = "your-model"
+# effective_from = "2026-08-01"
+# currency = "USD"
+# input_per_million = "1.00"
+# cached_input_per_million = "0.10"
+# output_per_million = "4.00"
+# reasoning_output_per_million = "4.00"
+
+[repositories."owner/repository"]
+enabled = true
+# Trusted user configuration may explicitly set this for a repository whose
+# reviewed PR boundary is one complete capability. Project configuration cannot
+# enable it, and every non-line safety gate remains enforced.
+# unlimited_diff_lines = true
+auto_prepare = false
+auto_merge = false
+auto_merge_method = "squash"
+# Maintainer same-repository mode only; apply also needs a reviewed digest and env gate.
+branch_cleanup = false
+mode = "contributor"
+submission_strategy = "fork"
+require_no_competing_work = true
+bootstrap_commands = ["uv sync"]
+verification_prefixes = [
+  "uv run pytest ",
+  "uvx ruff check ",
+]
+required_verification_markers = ["pytest", "ruff check"]
+pull_request_body_style = "generic"
+branch_template = "{login}/{scope}/{slug}"
+default_scope = "repo"
+# Raw GitHub event bodies are retained indefinitely unless explicitly enabled:
+# event_payload_retention_days = 90
+
+# User configuration only: explicitly reviewed boolean switches in tracked
+# .env.example / .env.sample / .env.template files. Exact, case-sensitive names;
+# non-empty subsets of string literals 0, 1, false, true, no, yes. No wildcards.
+# Project configuration cannot add or expand this allowance. Undeclared fields
+# retain credential checks; declared fields reject other non-empty values.
+# [repositories."owner/repo".env_template_booleans]
+# APP_DEV_AUTH = ["0"]

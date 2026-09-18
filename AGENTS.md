@@ -11,7 +11,7 @@ opens pull requests only after repository-specific gates and local human review.
 - Tests: `uv run python -m unittest discover -s tests -v`
 - Lint: `uvx ruff check .`
 - Format check: `uvx ruff format --check .`
-- CLI smoke test: `uv run reposteward --help`
+- CLI smoke test: `uv run forgesentinel --help`
 
 ## Safety invariants
 
@@ -26,7 +26,7 @@ opens pull requests only after repository-specific gates and local human review.
   Git push, or Docker containers. An API credential may be passed only to the
   GitHub REST client; Git clone/push uses the host's SSH key.
 - Do not submit a PR without a separate `submit` invocation, the
-  `REPOSTEWARD_ENABLE_SUBMIT=1` environment gate, and a `--reviewed-by` value
+  `FORGESENTINEL_ENABLE_SUBMIT=1` environment gate, and a `--reviewed-by` value
   matching the configured GitHub login.
 - Respect repository contribution policies. Assignment/approval checks are hard
   gates, not ranking hints.
@@ -43,7 +43,7 @@ opens pull requests only after repository-specific gates and local human review.
   another open PR. Keep closed-unmerged and fork branches by default.
 
 For Issue triage, implementation handoff, PR preparation, and CI/reviewer follow-up,
-read `.agents/skills/reposteward-maintainer/SKILL.md`. The skill describes the human
+read `.agents/skills/forgesentinel-maintainer/SKILL.md`. The skill describes the human
 workflow; the code-enforced safety invariants above remain authoritative.
 For remote branch audits and explicitly authorized cleanup, read
-`.agents/skills/reposteward-branch-cleanup/SKILL.md`.
+`.agents/skills/forgesentinel-branch-cleanup/SKILL.md`.

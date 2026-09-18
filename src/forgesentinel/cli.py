@@ -1,0 +1,1587 @@
+from __future__ import annotations
+
+import argparse
+import importlib.resources
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+from . import __version__
+from .batch import render_batch_plan_text
+from .benchmark import (
+    BENCHMARK_CATEGORIES,
+    load_benchmark_report,
+    run_benchmark,
+    write_benchmark_report,
+)
+from .branch_cleanup import render_branch_cleanup_text
+from .config import ConfigError, load_config
+from .dependencies import render_dependency_plan_text
+from .discovery import DiscoveryService
+from .doctor import run_doctor
+from .inbox import render_inbox_text
+from .issues import read_details
+from .lifecycle import (
+    DEFAULT_EVENT_LIMIT,
+    build_lifecycle_trace,
+    render_lifecycle_text,
+)
+from .pipeline import Pipeline
+from .policy import PolicyError
+from .portfolio import render_portfolio_text
+from .setup import add_repository, initialize_user_config
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="forgesentinel",
+        description=(
+            "Local-first, policy-gated control plane for turning GitHub issues into "
+            "verified, human-reviewed pull requests with coding agents."
+        ),
+    )
+    parser.add_argument(
+        "--config",
+        default=None,
+        help="project TOML config (default: discover and layer over user config)",
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"forgesentinel {__version__}"
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("version", help="show offline installation metadata as JSON")
+    web = subparsers.add_parser(
+        "web", help="open the read-only local maintainer workbench"
+    )
+    web.add_argument(
+        "--port",
+        type=int,
+        default=0,
+        help="local port (default: choose an available port)",
+    )
+    web.add_argument("--expect-state-dir", type=Path)
+    state = subparsers.add_parser(
+        "state", help="plan and explicitly back up local database upgrades"
+    )
+    state_commands = state.add_subparsers(dest="state_command", required=True)
+    state_plan = state_commands.add_parser(
+        "plan", help="read an upgrade plan without migrating"
+    )
+    state_plan.add_argument("--expect-state-dir", type=Path)
+    state_upgrade = state_commands.add_parser(
+        "upgrade", help="back up and apply an exact local upgrade plan"
+    )
+    state_upgrade.add_argument("--expect-state-dir", type=Path, required=True)
+    state_upgrade.add_argument("--plan-digest", required=True)
+    state_backup = state_commands.add_parser(
+        "inspect-backup", help="verify a backup without restoring it"
+    )
+    state_backup.add_argument("directory", type=Path)
+
+    initialize = subparsers.add_parser("init", help="create per-user configuration")
+    initialize.add_argument("--path", type=Path, default=None)
+    initialize.add_argument("--login", default="")
+    initialize.add_argument("--git-name", default="")
+    initialize.add_argument("--git-email", default="")
+    initialize.add_argument("--issue-project-owner", default="")
+    initialize.add_argument("--issue-project-number", type=int, default=0)
+    initialize.add_argument(
+        "--issue-project-owner-type",
+        choices=("user", "organization"),
+        default="user",
+    )
+    initialize.add_argument(
+        "--allow-issue-self-review",
+        action="store_true",
+        help="allow a single maintainer to review and promote their own Issue proposal",
+    )
+    initialize.add_argument("--force", action="store_true")
+
+    repo = subparsers.add_parser("repo", help="manage project repositories")
+    repo_commands = repo.add_subparsers(dest="repo_command", required=True)
+    repo_add = repo_commands.add_parser("add", help="add a repository policy skeleton")
+    repo_add.add_argument("repository")
+    repo_add.add_argument("--path", type=Path, default=None)
+    repo_add.add_argument(
+        "--mode", choices=("contributor", "maintainer"), default="contributor"
+    )
+
+    project = subparsers.add_parser("project", help="associate existing local projects")
+    project_commands = project.add_subparsers(dest="project_command", required=True)
+    project_link = project_commands.add_parser("link", help="link a clone or worktree")
+    project_link.add_argument("path", type=Path, nargs="?", default=Path.cwd())
+    project_link.add_argument("--name", default="")
+    project_inspect = project_commands.add_parser(
+        "inspect", help="inspect one linked workspace"
+    )
+    project_inspect.add_argument("path", type=Path, nargs="?", default=Path.cwd())
+    project_list = project_commands.add_parser(
+        "list", help="list local project identities"
+    )
+    project_list.add_argument("--limit", type=int, default=50)
+    project_unlink = project_commands.add_parser(
+        "unlink", help="remove a binding while keeping code"
+    )
+    project_unlink.add_argument("binding_id")
+
+    understand = subparsers.add_parser(
+        "understand", help="index local code and read evidence-backed project guides"
+    )
+    understanding_commands = understand.add_subparsers(
+        dest="understanding_command", required=True
+    )
+    for action in ("scan", "guide", "query", "evidence"):
+        command = understanding_commands.add_parser(action)
+        command.add_argument("path", type=Path)
+        command.add_argument(
+            "--cache-dir",
+            type=Path,
+            default=None,
+            help="user-owned cache outside the target workspace",
+        )
+        if action == "scan":
+            command.add_argument("--rebuild", action="store_true")
+        elif action in {"guide", "query"}:
+            command.add_argument(
+                "--mode", choices=("maintainer", "contributor"), default="maintainer"
+            )
+            command.add_argument("--limit", type=int, default=12)
+            command.add_argument(
+                "--format", choices=("markdown", "json"), default="markdown"
+            )
+            if action == "query":
+                command.add_argument("focus")
+            else:
+                command.add_argument("--focus", default="")
+        else:
+            command.add_argument("evidence_id")
+            command.add_argument("--start-line", type=int, default=1)
+            command.add_argument("--limit", type=int, default=80)
+
+    integration = subparsers.add_parser(
+        "integration", help="preview and manage coding client instruction fragments"
+    )
+    integration_commands = integration.add_subparsers(
+        dest="integration_command", required=True
+    )
+    for action in ("plan", "inspect", "apply", "revert"):
+        command = integration_commands.add_parser(action)
+        command.add_argument("path", type=Path, nargs="?", default=Path.cwd())
+        if action != "inspect":
+            command.add_argument(
+                "--client",
+                choices=("codex", "claude-code", "copilot-vscode"),
+                required=True,
+            )
+        if action == "plan":
+            command.add_argument("--revert", action="store_true")
+        elif action in {"apply", "revert"}:
+            command.add_argument("--plan-digest", required=True)
+
+    plugin = subparsers.add_parser(
+        "plugin",
+        help="export, diagnose and preview installation of scoped Codex plugins",
+    )
+    plugin_commands = plugin.add_subparsers(dest="plugin_command", required=True)
+    for action in ("plan", "export"):
+        command = plugin_commands.add_parser(action)
+        command.add_argument("path", type=Path)
+        command.add_argument("--output", type=Path, required=True)
+        if action == "export":
+            command.add_argument("--plan-digest", required=True)
+
+    for action in ("doctor", "install-plan"):
+        command = plugin_commands.add_parser(action)
+        command.add_argument("path", type=Path)
+        command.add_argument("--bundle", type=Path, required=True)
+        command.add_argument("--marketplace", type=Path)
+        command.add_argument("--codex-home", type=Path)
+
+    overview = subparsers.add_parser(
+        "overview", help="read local attention across linked projects"
+    )
+    overview_commands = overview.add_subparsers(dest="overview_command", required=True)
+    for action in ("show", "refresh"):
+        command = overview_commands.add_parser(action)
+        command.add_argument("--project-limit", type=int, default=10)
+        command.add_argument("--item-limit", type=int, default=10)
+        command.add_argument("--format", choices=("json", "text"), default="json")
+        if action == "show":
+            command.add_argument("--previous-digest", default="")
+
+    knowledge = subparsers.add_parser(
+        "knowledge", help="review and query evidence-backed project guidance"
+    )
+    knowledge_commands = knowledge.add_subparsers(
+        dest="knowledge_command", required=True
+    )
+    for action in ("propose", "promote", "inspect", "list"):
+        command = knowledge_commands.add_parser(action)
+        command.add_argument("run_id")
+        if action == "propose":
+            command.add_argument("--input", type=Path, required=True)
+        elif action == "promote":
+            command.add_argument("knowledge_id")
+            command.add_argument("--reviewed-by", required=True)
+            command.add_argument(
+                "--basis",
+                choices=("human_confirmation", "verification_evidence"),
+                required=True,
+            )
+            command.add_argument("--rationale", required=True)
+            command.add_argument("--verification-id", default="")
+        elif action == "inspect":
+            command.add_argument("knowledge_id")
+            command.add_argument("--live", action="store_true")
+        else:
+            command.add_argument("--scope-path", action="append", default=[])
+            command.add_argument("--limit", type=int, default=5)
+            command.add_argument("--all", action="store_true")
+
+    mcp = subparsers.add_parser(
+        "mcp", help="serve scoped local task assistance to existing clients"
+    )
+    mcp_commands = mcp.add_subparsers(dest="mcp_command", required=True)
+    mcp_serve = mcp_commands.add_parser("serve", help="run the local STDIO server")
+    mcp_serve.add_argument("path", type=Path)
+    mcp_serve.add_argument("--expected-scope", default="")
+    mcp_config = mcp_commands.add_parser(
+        "config", help="preview local client configuration"
+    )
+    mcp_config.add_argument("path", type=Path)
+    mcp_config.add_argument(
+        "--client", choices=("codex", "claude-code", "copilot-vscode"), required=True
+    )
+
+    task = subparsers.add_parser(
+        "task", help="assist coding agents in linked local projects"
+    )
+    task_commands = task.add_subparsers(dest="task_command", required=True)
+    task_start = task_commands.add_parser(
+        "start", help="freeze a reviewed Issue before external development"
+    )
+    task_start.add_argument("path", type=Path, nargs="?", default=Path.cwd())
+    task_start.add_argument("--issue", type=int, required=True)
+    task_start.add_argument("--reviewed-by", required=True)
+    task_start.add_argument("--contract", type=Path)
+    task_inspect = task_commands.add_parser(
+        "inspect", help="read an external development attempt"
+    )
+    task_inspect.add_argument("run_id")
+    task_inspect.add_argument("--live", action="store_true")
+    task_context = task_commands.add_parser(
+        "context", help="compile a bounded external task handoff"
+    )
+    task_context.add_argument("run_id")
+    task_context.add_argument("--budget", type=int, default=24_000)
+    task_context.add_argument("--live", action="store_true")
+    task_context.add_argument("--scope-path", action="append", default=[])
+    task_context.add_argument("--format", choices=("json", "markdown"), default="json")
+    task_current = task_commands.add_parser(
+        "current", help="get the current task for a linked workspace"
+    )
+    task_current.add_argument("path", type=Path, nargs="?", default=Path.cwd())
+    task_current.add_argument("--budget", type=int, default=24_000)
+    task_current.add_argument("--scope-path", action="append", default=[])
+    task_current.add_argument("--format", choices=("json", "markdown"), default="json")
+    task_checkpoint = task_commands.add_parser(
+        "checkpoint", help="save unverified Agent claims with revision checks"
+    )
+    task_checkpoint.add_argument("run_id")
+    task_checkpoint.add_argument("--expected-revision", type=int, required=True)
+    task_checkpoint.add_argument("--expected-snapshot", required=True)
+    task_checkpoint.add_argument("--idempotency-key", required=True)
+    task_checkpoint.add_argument("--input", type=Path, required=True)
+
+    verification = subparsers.add_parser(
+        "verification", help="verify and query exact external task snapshots"
+    )
+    verification_commands = verification.add_subparsers(
+        dest="verification_command", required=True
+    )
+    for action in ("profiles", "request", "inspect", "list", "evidence"):
+        command = verification_commands.add_parser(action)
+        command.add_argument("run_id")
+        if action == "request":
+            command.add_argument("--profile", required=True)
+            command.add_argument("--expected-revision", type=int, required=True)
+            command.add_argument("--expected-snapshot", required=True)
+            command.add_argument("--idempotency-key", required=True)
+        elif action == "inspect":
+            command.add_argument("evidence_id")
+            command.add_argument("--live", action="store_true")
+        elif action == "list":
+            command.add_argument("--limit", type=int, default=20)
+        elif action == "evidence":
+            command.add_argument("evidence_id")
+            command.add_argument("--offset", type=int, default=0)
+            command.add_argument("--limit", type=int, default=8000)
+
+    issue = subparsers.add_parser("issue", help="prepare local issue drafts")
+    issue_commands = issue.add_subparsers(dest="issue_command", required=True)
+    issue_draft = issue_commands.add_parser(
+        "draft", help="create a structured local Markdown draft"
+    )
+    issue_draft.add_argument("repository")
+    issue_draft.add_argument("--title", required=True)
+    issue_draft.add_argument("--summary", required=True)
+    issue_draft.add_argument("--actual", required=True)
+    issue_draft.add_argument("--expected", required=True)
+    issue_draft.add_argument("--reproduction", default="")
+    issue_draft.add_argument("--environment", default="")
+    issue_draft.add_argument("--acceptance", action="append", default=[])
+    issue_draft.add_argument("--details-file", type=Path, default=None)
+    issue_draft.add_argument("--language", choices=("en", "zh"), default="en")
+    issue_list = issue_commands.add_parser("list", help="list local issue drafts")
+    issue_list.add_argument("--limit", type=int, default=30)
+    issue_inspect = issue_commands.add_parser(
+        "inspect", help="print one local issue draft"
+    )
+    issue_inspect.add_argument("draft_id")
+    issue_duplicates = issue_commands.add_parser(
+        "duplicate-check", help="search GitHub for potentially similar issues"
+    )
+    issue_duplicates.add_argument("draft_id")
+    issue_stage = issue_commands.add_parser(
+        "stage", help="stage a local draft in the configured GitHub Project"
+    )
+    issue_stage.add_argument("draft_id")
+    issue_stage.add_argument("--submitted-by", required=True)
+    issue_review = issue_commands.add_parser(
+        "review", help="review the latest online proposal and duplicate snapshot"
+    )
+    issue_review.add_argument(
+        "project_item_id", help="GraphQL node ID, numeric itemId, or Project item URL"
+    )
+    issue_review.add_argument("--repository", required=True)
+    issue_promote = issue_commands.add_parser(
+        "promote", help="convert an approved Project draft into a repository Issue"
+    )
+    issue_promote.add_argument(
+        "project_item_id", help="GraphQL node ID, numeric itemId, or Project item URL"
+    )
+    issue_promote.add_argument("--repository", required=True)
+    issue_promote.add_argument("--reviewed-by", required=True)
+    issue_promote.add_argument("--review-digest", required=True)
+    issue_promote.add_argument(
+        "--duplicates-reviewed", action="store_true", required=True
+    )
+
+    doctor = subparsers.add_parser(
+        "doctor", help="check local tools and authentication"
+    )
+    doctor.add_argument(
+        "--local",
+        action="store_true",
+        help="inspect installation and state without authentication or writes",
+    )
+    doctor.add_argument(
+        "--expect-state-dir",
+        type=Path,
+        help="require this effective state directory in local mode",
+    )
+    image = subparsers.add_parser("image", help="manage the isolated verifier image")
+    image.add_argument("action", choices=("build",))
+
+    discover = subparsers.add_parser("discover", help="refresh issue candidates")
+    discover.add_argument("--repo", default="", help="limit to owner/name")
+
+    listing = subparsers.add_parser("list", help="list ranked issue candidates")
+    listing.add_argument(
+        "--all", action="store_true", help="include blocked candidates"
+    )
+    listing.add_argument("--status", default="candidate")
+    listing.add_argument("--limit", type=int, default=30)
+
+    lifecycle = subparsers.add_parser(
+        "trace", help="read one bounded work-item lifecycle trace"
+    )
+    lifecycle.add_argument("repository")
+    lifecycle.add_argument("issue", type=int)
+    lifecycle.add_argument("--limit", type=int, default=DEFAULT_EVENT_LIMIT)
+    lifecycle.add_argument("--format", choices=("json", "text"), default="json")
+
+    gate = subparsers.add_parser("gate", help="check contribution gates for one issue")
+    gate.add_argument("repository")
+    gate.add_argument("issue", type=int)
+
+    prepare = subparsers.add_parser(
+        "prepare", help="solve and verify one issue locally"
+    )
+    prepare.add_argument("repository")
+    prepare.add_argument("issue", type=int)
+
+    adopt = subparsers.add_parser(
+        "adopt", help="verify and register an existing local commit"
+    )
+    adopt.add_argument("repository")
+    adopt.add_argument("issue", type=int)
+    adopt.add_argument("--worktree", type=Path, required=True)
+    adopt.add_argument("--summary", required=True)
+    adopt.add_argument("--notes", required=True)
+    adopt.add_argument("--verify", action="append", required=True)
+
+    inspect = subparsers.add_parser(
+        "inspect", help="print a compact, reusable review packet for one run"
+    )
+    inspect.add_argument("run_id")
+
+    context = subparsers.add_parser(
+        "context", help="inspect, export, or import portable task context"
+    )
+    context_commands = context.add_subparsers(dest="context_command", required=True)
+    context_inspect = context_commands.add_parser(
+        "inspect", help="print the context pack and latest checkpoint"
+    )
+    context_inspect.add_argument("run_id")
+    context_export = context_commands.add_parser(
+        "export", help="write a portable context bundle atomically"
+    )
+    context_export.add_argument("run_id")
+    context_export.add_argument("--output", type=Path, required=True)
+    context_import = context_commands.add_parser(
+        "import", help="validate and import a portable context bundle"
+    )
+    context_import.add_argument("source", type=Path)
+
+    logs = subparsers.add_parser(
+        "logs", help="list verification logs or print one bounded log tail"
+    )
+    logs.add_argument("run_id")
+    logs.add_argument(
+        "--command",
+        dest="log_command",
+        type=int,
+        default=None,
+        help="one-based verification command number",
+    )
+    logs.add_argument("--tail-chars", type=int, default=12000)
+
+    storage = subparsers.add_parser(
+        "storage", help="inspect and maintain local storage"
+    )
+    storage_commands = storage.add_subparsers(dest="storage_command", required=True)
+    storage_stats = storage_commands.add_parser(
+        "stats", help="report local records and bytes by repository and category"
+    )
+    storage_stats.add_argument("--repo", default="", help="limit to owner/name")
+    storage_stats.add_argument(
+        "--since-days", type=int, default=0, help="include only newer records"
+    )
+    storage_gc = storage_commands.add_parser(
+        "gc", help="plan safe local cleanup; dry-run unless --apply is set"
+    )
+    storage_gc.add_argument("--repo", default="", help="limit to owner/name")
+    storage_gc.add_argument("--apply", action="store_true")
+
+    usage = subparsers.add_parser(
+        "usage", help="report prompt-free Harness usage and configured cost"
+    )
+    usage_commands = usage.add_subparsers(dest="usage_command", required=True)
+    usage_collect = usage_commands.add_parser(
+        "collect", help="collect selected local Codex turns for an external task"
+    )
+    usage_collect.add_argument("run_id")
+    usage_collect.add_argument("--codex-session", type=Path)
+    usage_collect.add_argument("--turn-id", action="append", default=[])
+    external_report = usage_commands.add_parser(
+        "external-report",
+        help="report locally collected external turns without GitHub access",
+    )
+    external_report.add_argument("repository")
+    external_report.add_argument("--issue", type=int, default=0)
+    external_report.add_argument(
+        "--group-by",
+        choices=("none", "work-item", "issue", "model"),
+        default="work-item",
+    )
+    external_report.add_argument("--include-turns", action="store_true")
+    usage_report = usage_commands.add_parser(
+        "report", help="aggregate one repository's Issue/PR lifecycle usage"
+    )
+    usage_report.add_argument("repository")
+    usage_report.add_argument("--issue", type=int, default=0)
+    usage_report.add_argument("--pull-number", type=int, default=0)
+    usage_report.add_argument(
+        "--stage", choices=("prepare", "repair", "adopt"), default=""
+    )
+    usage_report.add_argument("--harness", default="")
+    usage_report.add_argument("--model", default="")
+    usage_report.add_argument("--since", default="", help="inclusive YYYY-MM-DD")
+    usage_report.add_argument("--until", default="", help="inclusive YYYY-MM-DD")
+    usage_report.add_argument(
+        "--group-by",
+        choices=(
+            "none",
+            "work-item",
+            "issue",
+            "pull-request",
+            "stage",
+            "harness",
+            "model",
+        ),
+        default="pull-request",
+    )
+    usage_report.add_argument("--include-runs", action="store_true")
+
+    benchmark = subparsers.add_parser(
+        "benchmark", help="run deterministic offline ForgeSentinelBench scenarios"
+    )
+    benchmark_commands = benchmark.add_subparsers(
+        dest="benchmark_command", required=True
+    )
+    benchmark_run = benchmark_commands.add_parser(
+        "run", help="evaluate safety gates and multi-dimensional metrics"
+    )
+    benchmark_run.add_argument(
+        "--category",
+        action="append",
+        choices=BENCHMARK_CATEGORIES,
+        default=[],
+        help="limit the suite to one or more categories",
+    )
+    benchmark_run.add_argument(
+        "--scenario",
+        action="append",
+        default=[],
+        help="limit the suite to one or more exact scenario IDs",
+    )
+    benchmark_run.add_argument("--repeat", type=int, default=2)
+    benchmark_run.add_argument("--baseline", type=Path, default=None)
+    benchmark_run.add_argument("--output", type=Path, default=None)
+
+    ci = subparsers.add_parser("ci", help="inspect CI failures without rerunning jobs")
+    ci_commands = ci.add_subparsers(dest="ci_command", required=True)
+    ci_diagnose = ci_commands.add_parser(
+        "diagnose", help="fingerprint and classify current pull request failures"
+    )
+    ci_diagnose.add_argument("repository")
+    ci_diagnose.add_argument("pull_number", type=int)
+
+    portfolio = subparsers.add_parser(
+        "portfolio", help="inspect repository-wide pull request state"
+    )
+    portfolio_commands = portfolio.add_subparsers(
+        dest="portfolio_command", required=True
+    )
+    portfolio_inspect = portfolio_commands.add_parser(
+        "inspect", help="build a read-only open pull request snapshot"
+    )
+    portfolio_inspect.add_argument("repository")
+    portfolio_inspect.add_argument(
+        "--expected-digest",
+        default="",
+        help="report whether current facts still match this snapshot digest",
+    )
+    portfolio_inspect.add_argument("--format", choices=("json", "text"), default="json")
+    portfolio_plan = portfolio_commands.add_parser(
+        "plan", help="plan authoritative pull request dependencies"
+    )
+    portfolio_plan.add_argument("repository")
+    portfolio_plan.add_argument(
+        "--expected-digest",
+        default="",
+        help="report whether current dependency facts still match this plan digest",
+    )
+    portfolio_plan.add_argument("--format", choices=("json", "text"), default="json")
+    portfolio_dependency = portfolio_commands.add_parser(
+        "dependency", help="manage local maintainer dependency attestations"
+    )
+    dependency_commands = portfolio_dependency.add_subparsers(
+        dest="dependency_command", required=True
+    )
+    for action in ("confirm", "revoke"):
+        dependency_action = dependency_commands.add_parser(
+            action, help=f"{action} one head-bound dependency"
+        )
+        dependency_action.add_argument("repository")
+        dependency_action.add_argument("pull_number", type=int)
+        dependency_action.add_argument("dependency_number", type=int)
+        dependency_action.add_argument("--reviewed-by", required=True)
+    dependency_list = dependency_commands.add_parser(
+        "list", help="read recent local dependency audit events"
+    )
+    dependency_list.add_argument("repository")
+    dependency_list.add_argument("--pull-number", type=int, default=0)
+    dependency_list.add_argument("--limit", type=int, default=100)
+
+    branch_cleanup = subparsers.add_parser(
+        "branch-cleanup", help="plan or apply terminal PR branch cleanup"
+    )
+    branch_cleanup_commands = branch_cleanup.add_subparsers(
+        dest="branch_cleanup_command", required=True
+    )
+    branch_cleanup_plan = branch_cleanup_commands.add_parser(
+        "plan", help="build a read-only managed branch cleanup backlog"
+    )
+    branch_cleanup_plan.add_argument("repository")
+    branch_cleanup_plan.add_argument("--expected-digest", default="")
+    branch_cleanup_plan.add_argument(
+        "--format", choices=("json", "text"), default="json"
+    )
+    branch_cleanup_apply = branch_cleanup_commands.add_parser(
+        "apply", help="apply one exact reviewed cleanup plan"
+    )
+    branch_cleanup_apply.add_argument("repository")
+    branch_cleanup_apply.add_argument("--expected-digest", required=True)
+    branch_cleanup_apply.add_argument("--reviewed-by", required=True)
+
+    batch = subparsers.add_parser(
+        "batch", help="plan and enqueue a reviewed pull request merge train"
+    )
+    batch_commands = batch.add_subparsers(dest="batch_command", required=True)
+    batch_plan = batch_commands.add_parser(
+        "plan", help="build a read-only dependency and overlap aware plan"
+    )
+    batch_plan.add_argument("repository")
+    batch_plan.add_argument("--expected-digest", default="")
+    batch_plan.add_argument("--max-parallel", type=int, default=4)
+    batch_plan.add_argument("--format", choices=("json", "text"), default="json")
+    batch_apply = batch_commands.add_parser(
+        "apply", help="persist tasks from one exact reviewed batch plan"
+    )
+    batch_apply.add_argument("repository")
+    batch_apply.add_argument("--expected-digest", required=True)
+    batch_apply.add_argument("--reviewed-by", required=True)
+    batch_apply.add_argument("--max-parallel", type=int, default=4)
+    batch_apply.add_argument("--priority", type=int, default=100)
+
+    inbox = subparsers.add_parser(
+        "inbox", help="aggregate maintainer attention without invoking a Harness"
+    )
+    inbox.add_argument("--repo", required=True, help="limit to owner/name")
+    inbox.add_argument("--limit", type=int, default=50)
+    inbox.add_argument("--format", choices=("json", "text"), default="json")
+
+    follow_up = subparsers.add_parser(
+        "follow-up",
+        help="fetch only pull request activity changed since the last check",
+    )
+    follow_up.add_argument("run_id")
+
+    repair = subparsers.add_parser(
+        "repair",
+        help="prepare and verify one repair from unprocessed PR feedback",
+    )
+    repair.add_argument("run_id", help="submitted run whose pull request changed")
+
+    merge_decision = subparsers.add_parser(
+        "merge-decision", help="evaluate and audit read-only PR merge eligibility"
+    )
+    merge_decision.add_argument("run_id")
+
+    merge_attest = subparsers.add_parser(
+        "merge-attest", help="append an exact owner review attestation"
+    )
+    merge_attest.add_argument("run_id")
+    merge_attest.add_argument("--reviewed-by", required=True)
+
+    merge = subparsers.add_parser(
+        "merge", help="execute one fresh opt-in maintainer merge decision"
+    )
+    merge.add_argument("run_id")
+    merge.add_argument("--decision-id", required=True)
+    merge.add_argument("--reviewed-by", required=True)
+
+    submit = subparsers.add_parser(
+        "submit", help="push a reviewed change and create or reopen a PR"
+    )
+    submit.add_argument("repository")
+    submit.add_argument("issue", type=int)
+    submit.add_argument("--reviewed-by", required=True)
+    submit.add_argument(
+        "--reopen",
+        type=int,
+        default=0,
+        help="update and reopen a closed PR instead of creating a new one",
+    )
+
+    queue = subparsers.add_parser(
+        "queue", help="manage the persistent control-plane task queue"
+    )
+    queue_commands = queue.add_subparsers(dest="queue_command", required=True)
+    queue_enqueue = queue_commands.add_parser(
+        "enqueue", help="persist one idempotent task without executing it"
+    )
+    queue_enqueue.add_argument("repository")
+    queue_enqueue.add_argument(
+        "action",
+        choices=(
+            "prepare",
+            "follow-up",
+            "repair",
+            "submit",
+            "merge-decision",
+            "merge-attest",
+            "merge",
+        ),
+    )
+    queue_enqueue.add_argument("--issue", type=int, default=0)
+    queue_enqueue.add_argument("--pull-number", type=int, default=0)
+    queue_enqueue.add_argument("--run-id", default="")
+    queue_enqueue.add_argument("--work-item-id", default="")
+    queue_enqueue.add_argument("--priority", type=int, default=0)
+    queue_enqueue.add_argument("--depends-on", default="")
+    queue_enqueue.add_argument("--max-attempts", type=int, default=3)
+    queue_enqueue.add_argument("--idempotency-key", default="")
+    queue_enqueue.add_argument("--reviewed-by", default="")
+    queue_enqueue.add_argument("--decision-id", default="")
+    queue_enqueue.add_argument("--reopen", type=int, default=0)
+    queue_inspect = queue_commands.add_parser(
+        "inspect", help="read queue state and bounded attempt history"
+    )
+    queue_inspect.add_argument("--repo", default="")
+    queue_inspect.add_argument("--task-id", default="")
+    queue_inspect.add_argument(
+        "--state",
+        action="append",
+        choices=("pending", "running", "completed", "failed", "cancelled"),
+        default=[],
+    )
+    queue_inspect.add_argument("--limit", type=int, default=100)
+    queue_apply = queue_commands.add_parser(
+        "apply", help="explicitly execute ready tasks through Pipeline gates"
+    )
+    queue_apply.add_argument("--repo", default="")
+    queue_apply.add_argument("--worker", default="")
+    queue_apply.add_argument("--limit", type=int, default=1)
+    queue_apply.add_argument("--lease-seconds", type=int, default=900)
+    queue_cancel = queue_commands.add_parser(
+        "cancel", help="cancel one inactive or expired task"
+    )
+    queue_cancel.add_argument("task_id")
+    queue_cancel.add_argument("--by", required=True)
+    queue_cancel.add_argument("--reason", default="operator_cancelled")
+    queue_retry = queue_commands.add_parser(
+        "retry", help="explicitly requeue one failed or cancelled task"
+    )
+    queue_retry.add_argument("task_id")
+    queue_retry.add_argument("--by", required=True)
+
+    run = subparsers.add_parser(
+        "run", help="discover and prepare top auto-enabled issues"
+    )
+    run.add_argument("--limit", type=int, default=1)
+    return parser
+
+
+def _json(value: object) -> None:
+    print(json.dumps(value, ensure_ascii=False, indent=2))
+
+
+def _runner_dockerfile() -> Path:
+    bundled = importlib.resources.files("forgesentinel").joinpath(
+        "data", "Dockerfile.runner"
+    )
+    if bundled.is_file():
+        return Path(str(bundled))
+    source = Path(__file__).resolve().parents[2] / "docker" / "Dockerfile.runner"
+    if source.is_file():
+        return source
+    raise ConfigError("runner Dockerfile is missing from this installation")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        if args.command == "version":
+            from .runtime import installation_info
+
+            _json(installation_info())
+            return 0
+        if args.command == "web":
+            from .web_server import serve
+
+            web_config = load_config(args.config, include_user=True)
+            if args.expect_state_dir is not None and (
+                web_config.state_dir.expanduser().resolve()
+                != args.expect_state_dir.expanduser().resolve()
+            ):
+                raise ValueError(
+                    "effective state directory differs from the expected directory"
+                )
+            serve(web_config, port=args.port)
+            return 0
+        if args.command == "state":
+            from .state_upgrade import inspect_backup, upgrade_plan, upgrade_state
+
+            if args.state_command == "inspect-backup":
+                _json(inspect_backup(args.directory))
+            else:
+                state_config = load_config(args.config, include_user=True)
+                if args.state_command == "plan":
+                    _json(
+                        upgrade_plan(
+                            state_config, expected_state_dir=args.expect_state_dir
+                        )
+                    )
+                else:
+                    _json(
+                        upgrade_state(
+                            state_config,
+                            expected_state_dir=args.expect_state_dir,
+                            plan_digest=args.plan_digest,
+                        )
+                    )
+            return 0
+        if args.command == "doctor" and args.local:
+            from .runtime import local_diagnostics
+
+            try:
+                local_config = load_config(args.config, include_user=True)
+            except ConfigError:
+                local_config = None
+            report, ok = local_diagnostics(
+                local_config, expected_state_dir=args.expect_state_dir
+            )
+            if local_config is None and args.config:
+                report["configuration"]["selected_path"] = str(
+                    Path(args.config).expanduser().resolve()
+                )
+            _json(report)
+            return 0 if ok else 1
+        if args.command == "doctor" and args.expect_state_dir:
+            raise ConfigError("--expect-state-dir requires doctor --local")
+        if args.command == "init":
+            _json(
+                initialize_user_config(
+                    path=args.path,
+                    login=args.login,
+                    git_name=args.git_name,
+                    git_email=args.git_email,
+                    issue_project_owner=args.issue_project_owner,
+                    issue_project_number=args.issue_project_number,
+                    issue_project_owner_type=args.issue_project_owner_type,
+                    require_distinct_reviewer=not args.allow_issue_self_review,
+                    force=args.force,
+                )
+            )
+            return 0
+        if args.command == "repo":
+            if args.repo_command == "add":
+                _json(
+                    add_repository(
+                        args.repository,
+                        path=args.path,
+                        mode=args.mode,
+                    )
+                )
+                return 0
+            raise AssertionError(f"unhandled repo command: {args.repo_command}")
+        if args.command == "benchmark":
+            if args.benchmark_command == "run":
+                baseline = (
+                    load_benchmark_report(args.baseline) if args.baseline else None
+                )
+                report = run_benchmark(
+                    categories=tuple(args.category),
+                    scenario_ids=tuple(args.scenario),
+                    repeat=args.repeat,
+                    baseline=baseline,
+                )
+                if args.output is not None:
+                    write_benchmark_report(args.output, report)
+                _json(report)
+                return 0 if report["summary"]["all_passed"] else 1
+            raise AssertionError(
+                f"unhandled benchmark command: {args.benchmark_command}"
+            )
+        if args.command == "understand":
+            from .config import (
+                default_state_dir,
+                default_user_config_path,
+                discover_project_config,
+            )
+            from .understanding import Understanding, render_guide
+
+            cache_dir = args.cache_dir
+            if cache_dir is None:
+                configured = (
+                    args.config
+                    or discover_project_config()
+                    or default_user_config_path().exists()
+                )
+                state_dir = (
+                    load_config(args.config, include_user=True).state_dir
+                    if configured
+                    else default_state_dir()
+                )
+                cache_dir = state_dir / "understanding"
+            service = Understanding(cache_dir)
+            if args.understanding_command == "scan":
+                _json(service.scan(args.path, rebuild=args.rebuild))
+            elif args.understanding_command == "evidence":
+                _json(
+                    service.evidence(
+                        args.path,
+                        args.evidence_id,
+                        start_line=args.start_line,
+                        limit=args.limit,
+                    )
+                )
+            else:
+                result = service.guide(
+                    args.path, mode=args.mode, focus=args.focus, limit=args.limit
+                )
+                if args.format == "json":
+                    _json(result)
+                else:
+                    print(render_guide(result), end="")
+            return 0
+        config = load_config(args.config, include_user=True)
+        if args.command == "usage" and args.usage_command in {
+            "collect",
+            "external-report",
+        }:
+            from .external_usage import ExternalUsage
+
+            usage_service = ExternalUsage(config)
+            if args.usage_command == "collect":
+                result = usage_service.collect(
+                    args.run_id,
+                    codex_session=args.codex_session,
+                    turn_ids=tuple(args.turn_id),
+                )
+            else:
+                result = usage_service.report(
+                    args.repository,
+                    issue=args.issue,
+                    group_by=args.group_by,
+                    include_turns=args.include_turns,
+                )
+            _json(result)
+            return 0
+        if args.command == "plugin":
+            if args.plugin_command in {"doctor", "install-plan"}:
+                from .plugin_diagnostics import PluginDiagnostics
+
+                diagnostics = PluginDiagnostics(config)
+                method = (
+                    diagnostics.doctor
+                    if args.plugin_command == "doctor"
+                    else diagnostics.install_plan
+                )
+                result = method(
+                    args.path,
+                    bundle=args.bundle,
+                    marketplace=args.marketplace,
+                    codex_home=args.codex_home,
+                )
+                _json(result)
+                return (
+                    0
+                    if result.get(
+                        "bundle_compatible", result.get("ready_for_client_install")
+                    )
+                    else 2
+                )
+
+            from .plugin_bundle import PluginBundle
+
+            service = PluginBundle(config)
+            if args.plugin_command == "plan":
+                result = service.plan(args.path, output=args.output)
+            else:
+                result = service.export(
+                    args.path, output=args.output, plan_digest=args.plan_digest
+                )
+            _json(result)
+            return 0
+        if args.command == "integration":
+            from .integrations import AgentIntegration
+
+            service = AgentIntegration(config.state_dir)
+            if args.integration_command == "inspect":
+                result = service.inspect(args.path)
+            elif args.integration_command == "plan":
+                result = service.plan(args.path, client=args.client, revert=args.revert)
+            else:
+                result = service.apply(
+                    args.path,
+                    client=args.client,
+                    plan_digest=args.plan_digest,
+                    revert=args.integration_command == "revert",
+                )
+            _json(result)
+            return 0
+        if args.command == "overview":
+            from .overview import ProjectOverview, render_overview
+
+            service = ProjectOverview(config)
+            if args.overview_command == "refresh":
+                result = service.refresh(
+                    project_limit=args.project_limit, item_limit=args.item_limit
+                )
+            else:
+                result = service.show(
+                    project_limit=args.project_limit,
+                    item_limit=args.item_limit,
+                    previous_digest=args.previous_digest,
+                )
+            if args.format == "text":
+                print(render_overview(result))
+            else:
+                _json(result)
+            return 0
+        if args.command == "knowledge":
+            from .knowledge import ProjectKnowledge
+
+            service = ProjectKnowledge(config)
+            if args.knowledge_command == "propose":
+                with args.input.open("rb") as handle:
+                    raw = handle.read(100_001)
+                if len(raw) > 100_000:
+                    raise ValueError("knowledge input exceeds 100000 bytes")
+                result = service.propose(args.run_id, json.loads(raw))
+            elif args.knowledge_command == "promote":
+                result = service.promote(
+                    args.run_id,
+                    args.knowledge_id,
+                    reviewed_by=args.reviewed_by,
+                    basis=args.basis,
+                    rationale=args.rationale,
+                    verification_id=args.verification_id,
+                )
+            elif args.knowledge_command == "inspect":
+                result = service.inspect(args.run_id, args.knowledge_id, live=args.live)
+            else:
+                result = service.list(
+                    args.run_id,
+                    scope_paths=tuple(args.scope_path) or (".",),
+                    limit=args.limit,
+                    include_inactive=args.all,
+                )
+            _json(result)
+            return 0
+        if args.command == "mcp":
+            if args.mcp_command == "serve":
+                from .mcp_bridge import serve
+
+                serve(config, args.path, expected_scope=args.expected_scope)
+            else:
+                from .mcp_config import client_config
+
+                _json(client_config(config, args.path, client=args.client))
+            return 0
+        if args.command == "verification":
+            from .external_verification import ExternalVerification
+
+            service = ExternalVerification(config)
+            if args.verification_command == "profiles":
+                result = service.profiles(args.run_id)
+            elif args.verification_command == "request":
+                result = service.request(
+                    args.run_id,
+                    profile=args.profile,
+                    expected_revision=args.expected_revision,
+                    expected_snapshot=args.expected_snapshot,
+                    idempotency_key=args.idempotency_key,
+                )
+            elif args.verification_command == "inspect":
+                result = service.inspect(
+                    args.run_id,
+                    args.evidence_id.removeprefix("verification:"),
+                    live=args.live,
+                )
+            elif args.verification_command == "list":
+                result = service.list(args.run_id, limit=args.limit)
+            else:
+                result = service.evidence(
+                    args.run_id, args.evidence_id, offset=args.offset, limit=args.limit
+                )
+            _json(result)
+            return (
+                1
+                if isinstance(result, dict)
+                and args.verification_command == "request"
+                and result["outcome"] != "passed"
+                else 0
+            )
+        if args.command == "task":
+            from .external_tasks import ExternalTasks
+
+            service = ExternalTasks(config)
+
+            def read_task_input(path: Path) -> dict:
+                if path.stat().st_size > 100_000:
+                    raise ValueError("task input exceeds the 100000 byte limit")
+                value = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(value, dict):
+                    raise ConfigError("task input must be a JSON object")
+                return value
+
+            if args.task_command == "start":
+                result = service.start(
+                    args.path,
+                    issue_number=args.issue,
+                    reviewed_by=args.reviewed_by,
+                    contract_proposal=read_task_input(args.contract)
+                    if args.contract
+                    else None,
+                )
+            elif args.task_command == "inspect":
+                result = service.inspect(args.run_id, live=args.live)
+            elif args.task_command == "current":
+                result = service.current(
+                    args.path, budget=args.budget, scope_paths=tuple(args.scope_path)
+                )
+            elif args.task_command == "context":
+                result = service.context(
+                    args.run_id,
+                    budget=args.budget,
+                    live=args.live,
+                    scope_paths=tuple(args.scope_path),
+                )
+            else:
+                result = service.checkpoint(
+                    args.run_id,
+                    expected_revision=args.expected_revision,
+                    expected_snapshot=args.expected_snapshot,
+                    idempotency_key=args.idempotency_key,
+                    payload=read_task_input(args.input),
+                )
+            if (
+                args.task_command in {"context", "current"}
+                and args.format == "markdown"
+            ):
+                print(
+                    "# ForgeSentinel task handoff\n\n```json\n"
+                    + json.dumps(result, ensure_ascii=False, indent=2)
+                    + "\n```"
+                )
+            else:
+                _json(result)
+            return 0
+        if args.command == "project":
+            from .projects import ProjectRegistry
+
+            registry = ProjectRegistry(config.state_dir / "projects.sqlite3")
+            if args.project_command == "link":
+                result = registry.link(args.path, name=args.name)
+            elif args.project_command == "inspect":
+                result = registry.inspect(args.path)
+            elif args.project_command == "list":
+                result = registry.list(limit=args.limit)
+            else:
+                result = registry.unlink(args.binding_id)
+            _json(result)
+            return 0
+        if args.command == "trace":
+            try:
+                policy = config.repositories[args.repository.casefold()]
+            except KeyError as exc:
+                raise PolicyError(
+                    f"repository is not allowlisted: {args.repository}"
+                ) from exc
+            result = build_lifecycle_trace(
+                config.state_dir,
+                policy.name,
+                args.issue,
+                event_limit=args.limit,
+            )
+            if args.format == "text":
+                print(render_lifecycle_text(result))
+            else:
+                _json(result)
+            return 0
+        pipeline = Pipeline(config)
+        if args.command == "issue":
+            if args.issue_command == "draft":
+                _json(
+                    pipeline.create_issue_draft(
+                        args.repository,
+                        title=args.title,
+                        summary=args.summary,
+                        actual=args.actual,
+                        expected=args.expected,
+                        reproduction=args.reproduction,
+                        environment=args.environment,
+                        acceptance=tuple(args.acceptance),
+                        details=read_details(args.details_file),
+                        language=args.language,
+                    )
+                )
+                return 0
+            if args.issue_command == "list":
+                _json(pipeline.issue_drafts(limit=args.limit))
+                return 0
+            if args.issue_command == "inspect":
+                _json(pipeline.issue_draft(args.draft_id))
+                return 0
+            if args.issue_command == "duplicate-check":
+                _json(pipeline.issue_duplicate_check(args.draft_id))
+                return 0
+            if args.issue_command == "stage":
+                _json(
+                    pipeline.stage_issue_proposal(
+                        args.draft_id, submitted_by=args.submitted_by
+                    )
+                )
+                return 0
+            if args.issue_command == "review":
+                _json(
+                    pipeline.issue_proposal_review(
+                        args.project_item_id,
+                        repository=args.repository,
+                    )
+                )
+                return 0
+            if args.issue_command == "promote":
+                _json(
+                    pipeline.promote_issue_proposal(
+                        args.project_item_id,
+                        repository=args.repository,
+                        reviewed_by=args.reviewed_by,
+                        review_digest=args.review_digest,
+                        duplicates_reviewed=args.duplicates_reviewed,
+                    )
+                )
+                return 0
+            raise AssertionError(f"unhandled issue command: {args.issue_command}")
+        if args.command == "doctor":
+            report, ok = run_doctor(config)
+            _json(report)
+            return 0 if ok else 1
+        if args.command == "image":
+            dockerfile = _runner_dockerfile()
+            result = subprocess.run(
+                [
+                    "docker",
+                    "build",
+                    "-t",
+                    config.runner.image,
+                    "-f",
+                    str(dockerfile),
+                    str(dockerfile.parent),
+                ],
+                check=False,
+            )
+            return result.returncode
+        if args.command == "discover":
+            service = DiscoveryService(config, pipeline.github, pipeline.store)
+            candidates = service.discover(args.repo)
+            _json(
+                [
+                    {
+                        "key": item.key,
+                        "score": item.score,
+                        "blocked": list(item.blockers),
+                        "title": item.issue.title,
+                        "url": item.issue.url,
+                    }
+                    for item in candidates
+                ]
+            )
+            return 0
+        if args.command == "list":
+            rows = pipeline.store.candidates(
+                include_blocked=args.all, status=args.status, limit=args.limit
+            )
+            _json(
+                [
+                    {
+                        "key": item.key,
+                        "score": item.score,
+                        "status": status,
+                        "title": item.issue.title,
+                        "blockers": list(item.blockers),
+                    }
+                    for item, status in rows
+                ]
+            )
+            return 0
+        if args.command == "gate":
+            _json(pipeline.gate_status(args.repository, args.issue))
+            return 0
+        if args.command == "prepare":
+            _json(pipeline.prepare(args.repository, args.issue))
+            return 0
+        if args.command == "adopt":
+            _json(
+                pipeline.adopt(
+                    args.repository,
+                    args.issue,
+                    worktree=args.worktree,
+                    summary_text=args.summary,
+                    implementation_notes=args.notes,
+                    verification_commands=tuple(args.verify),
+                )
+            )
+            return 0
+        if args.command == "inspect":
+            _json(pipeline.inspect_run(args.run_id))
+            return 0
+        if args.command == "context":
+            if args.context_command == "inspect":
+                _json(pipeline.context_bundle(args.run_id))
+                return 0
+            if args.context_command == "export":
+                _json(pipeline.export_context(args.run_id, args.output))
+                return 0
+            if args.context_command == "import":
+                _json(pipeline.import_context(args.source))
+                return 0
+            raise AssertionError(f"unhandled context command: {args.context_command}")
+        if args.command == "logs":
+            _json(
+                pipeline.run_logs(
+                    args.run_id,
+                    command_number=args.log_command,
+                    tail_chars=args.tail_chars,
+                )
+            )
+            return 0
+        if args.command == "storage":
+            if args.storage_command == "stats":
+                _json(
+                    pipeline.storage_statistics(
+                        repository=args.repo, since_days=args.since_days
+                    )
+                )
+                return 0
+            if args.storage_command == "gc":
+                _json(pipeline.storage_gc(repository=args.repo, apply=args.apply))
+                return 0
+            raise AssertionError(f"unhandled storage command: {args.storage_command}")
+        if args.command == "usage":
+            if args.usage_command == "report":
+                _json(
+                    pipeline.usage_report(
+                        args.repository,
+                        issue_number=args.issue,
+                        pull_number=args.pull_number,
+                        run_stage=args.stage,
+                        harness=args.harness,
+                        model=args.model,
+                        since=args.since,
+                        until=args.until,
+                        group_by=args.group_by,
+                        include_runs=args.include_runs,
+                    )
+                )
+                return 0
+            raise AssertionError(f"unhandled usage command: {args.usage_command}")
+        if args.command == "ci":
+            if args.ci_command == "diagnose":
+                _json(pipeline.ci_failure_analysis(args.repository, args.pull_number))
+                return 0
+            raise AssertionError(f"unhandled ci command: {args.ci_command}")
+        if args.command == "portfolio":
+            if args.portfolio_command == "inspect":
+                result = pipeline.portfolio_snapshot(
+                    args.repository, expected_digest=args.expected_digest
+                )
+                if args.format == "text":
+                    print(render_portfolio_text(result))
+                else:
+                    _json(result)
+                return 0
+            if args.portfolio_command == "plan":
+                result = pipeline.portfolio_dependency_plan(
+                    args.repository, expected_digest=args.expected_digest
+                )
+                if args.format == "text":
+                    print(render_dependency_plan_text(result))
+                else:
+                    _json(result)
+                return 0
+            if args.portfolio_command == "dependency":
+                if args.dependency_command == "list":
+                    _json(
+                        pipeline.portfolio_dependency_events(
+                            args.repository,
+                            pull_number=args.pull_number,
+                            limit=args.limit,
+                        )
+                    )
+                    return 0
+                _json(
+                    pipeline.attest_portfolio_dependency(
+                        args.repository,
+                        pull_number=args.pull_number,
+                        dependency_number=args.dependency_number,
+                        action=args.dependency_command,
+                        reviewed_by=args.reviewed_by,
+                    )
+                )
+                return 0
+            raise AssertionError(
+                f"unhandled portfolio command: {args.portfolio_command}"
+            )
+        if args.command == "branch-cleanup":
+            if args.branch_cleanup_command == "plan":
+                result = pipeline.branch_cleanup_plan(
+                    args.repository, expected_digest=args.expected_digest
+                )
+                if args.format == "text":
+                    print(render_branch_cleanup_text(result))
+                else:
+                    _json(result)
+                return 0
+            if args.branch_cleanup_command == "apply":
+                result = pipeline.apply_branch_cleanup(
+                    args.repository,
+                    expected_digest=args.expected_digest,
+                    reviewed_by=args.reviewed_by,
+                )
+                _json(result)
+                return 0 if result["complete"] else 1
+            raise AssertionError(
+                f"unhandled branch cleanup command: {args.branch_cleanup_command}"
+            )
+        if args.command == "batch":
+            if args.batch_command == "plan":
+                result = pipeline.batch_plan(
+                    args.repository,
+                    expected_digest=args.expected_digest,
+                    max_parallel=args.max_parallel,
+                )
+                if args.format == "text":
+                    print(render_batch_plan_text(result))
+                else:
+                    _json(result)
+                return 0
+            if args.batch_command == "apply":
+                _json(
+                    pipeline.batch_apply(
+                        args.repository,
+                        expected_digest=args.expected_digest,
+                        reviewed_by=args.reviewed_by,
+                        max_parallel=args.max_parallel,
+                        priority=args.priority,
+                    )
+                )
+                return 0
+            raise AssertionError(f"unhandled batch command: {args.batch_command}")
+        if args.command == "follow-up":
+            _json(pipeline.follow_up(args.run_id))
+            return 0
+        if args.command == "inbox":
+            result = pipeline.maintainer_inbox(args.repo, limit=args.limit)
+            if args.format == "text":
+                print(render_inbox_text(result))
+            else:
+                _json(result)
+            return 0
+        if args.command == "repair":
+            _json(pipeline.prepare_repair(args.run_id))
+            return 0
+        if args.command == "merge-decision":
+            _json(pipeline.merge_decision(args.run_id))
+            return 0
+        if args.command == "merge-attest":
+            _json(
+                pipeline.attest_owner_review(args.run_id, reviewed_by=args.reviewed_by)
+            )
+            return 0
+        if args.command == "merge":
+            _json(
+                pipeline.execute_merge(
+                    args.run_id,
+                    decision_id=args.decision_id,
+                    reviewed_by=args.reviewed_by,
+                )
+            )
+            return 0
+        if args.command == "submit":
+            _json(
+                pipeline.submit(
+                    args.repository,
+                    args.issue,
+                    reviewed_by=args.reviewed_by,
+                    reopen_pull_request=args.reopen,
+                )
+            )
+            return 0
+        if args.command == "queue":
+            if args.queue_command == "enqueue":
+                _json(
+                    pipeline.enqueue_task(
+                        args.repository,
+                        action=args.action,
+                        issue_number=args.issue,
+                        pull_number=args.pull_number,
+                        run_id=args.run_id,
+                        work_item_id=args.work_item_id,
+                        priority=args.priority,
+                        depends_on_task_id=args.depends_on,
+                        max_attempts=args.max_attempts,
+                        idempotency_key=args.idempotency_key,
+                        reviewed_by=args.reviewed_by,
+                        decision_id=args.decision_id,
+                        reopen_pull_request=args.reopen,
+                    )
+                )
+                return 0
+            if args.queue_command == "inspect":
+                _json(
+                    pipeline.queue_inspect(
+                        repository=args.repo,
+                        task_id=args.task_id,
+                        states=tuple(args.state),
+                        limit=args.limit,
+                    )
+                )
+                return 0
+            if args.queue_command == "apply":
+                _json(
+                    pipeline.apply_queue(
+                        repository=args.repo,
+                        worker=args.worker,
+                        limit=args.limit,
+                        lease_seconds=args.lease_seconds,
+                    )
+                )
+                return 0
+            if args.queue_command == "cancel":
+                _json(
+                    pipeline.cancel_task(
+                        args.task_id,
+                        cancelled_by=args.by,
+                        reason_code=args.reason,
+                    )
+                )
+                return 0
+            if args.queue_command == "retry":
+                _json(pipeline.requeue_task(args.task_id, requeued_by=args.by))
+                return 0
+            raise AssertionError(f"unhandled queue command: {args.queue_command}")
+        if args.command == "run":
+            service = DiscoveryService(config, pipeline.github, pipeline.store)
+            service.discover()
+            auto_repositories = tuple(
+                policy.name
+                for policy in config.repositories.values()
+                if policy.enabled and policy.auto_prepare
+            )
+            rows = pipeline.store.candidates(
+                limit=max(args.limit * 10, args.limit),
+                auto_prepare_repositories=auto_repositories,
+                min_score=config.discovery.min_score,
+            )
+            results = []
+            for candidate, _ in rows:
+                policy = pipeline.policy(candidate.issue.repository)
+                if policy.require_assignment_before_submit:
+                    gate = pipeline.gate_status(
+                        candidate.issue.repository, candidate.issue.number
+                    )
+                    if not gate["submission_ready"]:
+                        continue
+                prepared = pipeline.prepare(
+                    candidate.issue.repository, candidate.issue.number
+                )
+                results.append({"prepared": prepared})
+                if len(results) >= args.limit:
+                    break
+            _json(results)
+            return 0
+        raise AssertionError(f"unhandled command: {args.command}")
+    except (ConfigError, OSError, RuntimeError, ValueError, KeyError) as exc:
+        print(f"forgesentinel: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

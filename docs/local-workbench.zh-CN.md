@@ -3,7 +3,7 @@
 安装后运行：
 
 ```bash
-reposteward web
+forgesentinel web
 ```
 
 用同一台机器上的浏览器打开终端打印的完整链接。默认选择可用端口；可用
@@ -16,9 +16,9 @@ checkout，也不需要启动模型、Docker 或 GitHub 认证。
 先使用已有命令准备本地事实：
 
 ```bash
-reposteward project link /absolute/path/to/project
-reposteward understand scan /absolute/path/to/project
-reposteward overview refresh
+forgesentinel project link /absolute/path/to/project
+forgesentinel understand scan /absolute/path/to/project
+forgesentinel overview refresh
 ```
 
 `project link` 登记本地工作区，不授予仓库维护权限；已有 clone/worktree 保持原位置。

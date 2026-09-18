@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   promote:
-    environment: reposteward-issue-publishing
+    environment: forgesentinel-issue-publishing
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -39,11 +39,11 @@ jobs:
       TARGET_REPOSITORY: ${{ inputs.repository }}
       REVIEW_DIGEST: ${{ inputs.review_digest }}
       DUPLICATES_REVIEWED: ${{ inputs.duplicates_reviewed }}
-      PUBLISHER_LOGIN: ${{ vars.REPOSTEWARD_PUBLISHER_LOGIN }}
-      ISSUE_PROJECT_OWNER: ${{ vars.REPOSTEWARD_ISSUE_PROJECT_OWNER }}
-      ISSUE_PROJECT_NUMBER: ${{ vars.REPOSTEWARD_ISSUE_PROJECT_NUMBER }}
-      ISSUE_PROJECT_OWNER_TYPE: ${{ vars.REPOSTEWARD_ISSUE_PROJECT_OWNER_TYPE }}
-      REPOSTEWARD_ENABLE_ISSUE_PROMOTION: "1"
+      PUBLISHER_LOGIN: ${{ vars.FORGESENTINEL_PUBLISHER_LOGIN }}
+      ISSUE_PROJECT_OWNER: ${{ vars.FORGESENTINEL_ISSUE_PROJECT_OWNER }}
+      ISSUE_PROJECT_NUMBER: ${{ vars.FORGESENTINEL_ISSUE_PROJECT_NUMBER }}
+      ISSUE_PROJECT_OWNER_TYPE: ${{ vars.FORGESENTINEL_ISSUE_PROJECT_OWNER_TYPE }}
+      FORGESENTINEL_ENABLE_ISSUE_PROMOTION: "1"
     steps:
       - name: Check out trusted ForgeSentinel code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -65,14 +65,14 @@ jobs:
       - name: Isolate ForgeSentinel runtime state
         run: |
           {
-            echo "XDG_CONFIG_HOME=$RUNNER_TEMP/reposteward/config"
-            echo "XDG_STATE_HOME=$RUNNER_TEMP/reposteward/state"
-            echo "XDG_DATA_HOME=$RUNNER_TEMP/reposteward/data"
+            echo "XDG_CONFIG_HOME=$RUNNER_TEMP/forgesentinel/config"
+            echo "XDG_STATE_HOME=$RUNNER_TEMP/forgesentinel/state"
+            echo "XDG_DATA_HOME=$RUNNER_TEMP/forgesentinel/data"
           } >> "$GITHUB_ENV"
 
       - name: Validate publication attestation
         env:
-          GH_TOKEN: ${{ secrets.REPOSTEWARD_GITHUB_PUBLISH_TOKEN }}
+          GH_TOKEN: ${{ secrets.FORGESENTINEL_GITHUB_PUBLISH_TOKEN }}
         run: |
           test -n "$GH_TOKEN"
           test -n "$PUBLISHER_LOGIN"
@@ -84,21 +84,21 @@ jobs:
 
       - name: Create ephemeral trusted configuration
         run: |
-          mkdir -p "$RUNNER_TEMP/reposteward/project"
-          uv run reposteward init \
+          mkdir -p "$RUNNER_TEMP/forgesentinel/project"
+          uv run forgesentinel init \
             --login "$PUBLISHER_LOGIN" \
             --issue-project-owner "$ISSUE_PROJECT_OWNER" \
             --issue-project-number "$ISSUE_PROJECT_NUMBER" \
             --issue-project-owner-type "$ISSUE_PROJECT_OWNER_TYPE"
-          uv run reposteward repo add "$TARGET_REPOSITORY" \
-            --path "$RUNNER_TEMP/reposteward/project/.reposteward.toml"
+          uv run forgesentinel repo add "$TARGET_REPOSITORY" \
+            --path "$RUNNER_TEMP/forgesentinel/project/.forgesentinel.toml"
 
       - name: Convert the exact reviewed proposal into an Issue
         env:
-          GH_TOKEN: ${{ secrets.REPOSTEWARD_GITHUB_PUBLISH_TOKEN }}
+          GH_TOKEN: ${{ secrets.FORGESENTINEL_GITHUB_PUBLISH_TOKEN }}
         run: |
-          uv run reposteward \
-            --config "$RUNNER_TEMP/reposteward/project/.reposteward.toml" \
+          uv run forgesentinel \
+            --config "$RUNNER_TEMP/forgesentinel/project/.forgesentinel.toml" \
             issue promote "$PROJECT_ITEM_ID" \
             --repository "$TARGET_REPOSITORY" \
             --reviewed-by "$PUBLISHER_LOGIN" \

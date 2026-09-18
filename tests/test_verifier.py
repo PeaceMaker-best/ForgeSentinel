@@ -9,9 +9,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from reposteward.config import RepositoryPolicy, RunnerConfig, SafetyConfig
-from reposteward.models import AgentResult, CommandResult
-from reposteward.verifier import DockerVerifier, VerificationError
+from forgesentinel.config import RepositoryPolicy, RunnerConfig, SafetyConfig
+from forgesentinel.models import AgentResult, CommandResult
+from forgesentinel.verifier import DockerVerifier, VerificationError
 
 
 def _repository(root: Path) -> None:
@@ -577,7 +577,7 @@ class VerificationSandboxTests(unittest.TestCase):
             for path in (workspace, environment, git_dir):
                 path.mkdir()
             with patch(
-                "reposteward.verifier.subprocess.run", return_value=completed
+                "forgesentinel.verifier.subprocess.run", return_value=completed
             ) as run:
                 verifier._run_container(
                     workspace,
@@ -589,8 +589,8 @@ class VerificationSandboxTests(unittest.TestCase):
 
         command = run.call_args.args[0]
         self.assertIn(f"{workspace.resolve()}:/workspace:rw", command)
-        self.assertIn(f"{environment.resolve()}:/reposteward-env:rw", command)
-        self.assertIn(f"{git_dir.resolve()}:/reposteward-git:ro", command)
+        self.assertIn(f"{environment.resolve()}:/forgesentinel-env:rw", command)
+        self.assertIn(f"{git_dir.resolve()}:/forgesentinel-git:ro", command)
         self.assertIn("none", command)
 
 

@@ -1,6 +1,6 @@
 .git
 .starfix
-.reposteward
+.forgesentinel
 .venv
 __pycache__
 *.pyc

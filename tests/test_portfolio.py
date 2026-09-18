@@ -3,10 +3,10 @@ from __future__ import annotations
 import unittest
 from types import SimpleNamespace
 
-from reposteward.config import RepositoryPolicy
-from reposteward.github import GitHubError, PullRequest
-from reposteward.pipeline import Pipeline
-from reposteward.portfolio import build_portfolio_snapshot, render_portfolio_text
+from forgesentinel.config import RepositoryPolicy
+from forgesentinel.github import GitHubError, PullRequest
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.portfolio import build_portfolio_snapshot, render_portfolio_text
 
 
 def _pull(

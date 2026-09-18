@@ -11,9 +11,9 @@ from dataclasses import asdict, replace
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from reposteward.agent import CodexCliHarness, build_harness_prompt
-from reposteward.config import AgentConfig, ConfigError, RepositoryPolicy, load_config
-from reposteward.context import (
+from forgesentinel.agent import CodexCliHarness, build_harness_prompt
+from forgesentinel.config import AgentConfig, ConfigError, RepositoryPolicy, load_config
+from forgesentinel.context import (
     MAX_HANDOFF_ITEM_CHARS,
     MAX_PROJECT_SKILLS,
     MAX_SKILL_FILE_BYTES,
@@ -25,13 +25,13 @@ from reposteward.context import (
     repository_policy_digest,
     review_checkpoint,
 )
-from reposteward.context_budget import (
+from forgesentinel.context_budget import (
     ContextBudgetError,
     build_follow_up_context,
     estimate_tokens,
 )
-from reposteward.harness import SUPPORTED, HarnessCapabilities, create_harness
-from reposteward.models import (
+from forgesentinel.harness import SUPPORTED, HarnessCapabilities, create_harness
+from forgesentinel.models import (
     AgentExecution,
     AgentMetrics,
     AgentResult,
@@ -40,11 +40,11 @@ from reposteward.models import (
     RepositoryInfo,
     VerificationResult,
 )
-from reposteward.pipeline import Pipeline
-from reposteward.policy import DiffSummary
-from reposteward.protocol import validate_context_pack
-from reposteward.repair_prompt import build_budgeted_repair_context_pack
-from reposteward.task_contract import issue_digest, review_contract
+from forgesentinel.pipeline import Pipeline
+from forgesentinel.policy import DiffSummary
+from forgesentinel.protocol import validate_context_pack
+from forgesentinel.repair_prompt import build_budgeted_repair_context_pack
+from forgesentinel.task_contract import issue_digest, review_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -805,7 +805,7 @@ class HarnessContractTests(unittest.TestCase):
             pipeline.verifier.verify.return_value = VerificationResult(True, ())
 
             with patch(
-                "reposteward.pipeline.enforce_change_policy",
+                "forgesentinel.pipeline.enforce_change_policy",
                 return_value=DiffSummary(("src/example.py",), 3, 1),
             ):
                 first_packet = pipeline.prepare("skillnerds/xskill", 7)

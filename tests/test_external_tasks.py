@@ -13,16 +13,16 @@ from unittest.mock import Mock, patch
 from test_context import _candidate
 from test_projects import git, repository
 
-from reposteward.cli import main
-from reposteward.config import load_config
-from reposteward.context import portable_bundle
-from reposteward.context_budget import ContextBudgetError
-from reposteward.external_tasks import ExternalTasks, TaskConflict
-from reposteward.policy import PolicyError
-from reposteward.projects import ProjectError
-from reposteward.setup import add_repository, initialize_user_config
-from reposteward.snapshots import workspace_snapshot
-from reposteward.store import Store, StoreError
+from forgesentinel.cli import main
+from forgesentinel.config import load_config
+from forgesentinel.context import portable_bundle
+from forgesentinel.context_budget import ContextBudgetError
+from forgesentinel.external_tasks import ExternalTasks, TaskConflict
+from forgesentinel.policy import PolicyError
+from forgesentinel.projects import ProjectError
+from forgesentinel.setup import add_repository, initialize_user_config
+from forgesentinel.snapshots import workspace_snapshot
+from forgesentinel.store import Store, StoreError
 
 
 class ExternalTaskTests(unittest.TestCase):
@@ -88,7 +88,7 @@ class ExternalTaskTests(unittest.TestCase):
         (self.repo / "new.py").write_text("x = 1\n")
         before = workspace_snapshot(self.repo)
         with patch(
-            "reposteward.cli.Pipeline",
+            "forgesentinel.cli.Pipeline",
             side_effect=AssertionError("unexpected Pipeline"),
         ):
             result = self.start()
@@ -204,14 +204,14 @@ class ExternalTaskTests(unittest.TestCase):
         reader = ExternalTasks(self.config)
         with (
             patch(
-                "reposteward.external_tasks.GitHubClient",
+                "forgesentinel.external_tasks.GitHubClient",
                 side_effect=AssertionError("unexpected auth"),
             ),
             patch(
-                "reposteward.cli.Pipeline",
+                "forgesentinel.cli.Pipeline",
                 side_effect=AssertionError("unexpected Pipeline"),
             ),
-            patch("reposteward.cli.load_config", return_value=self.config),
+            patch("forgesentinel.cli.load_config", return_value=self.config),
             redirect_stdout(io.StringIO()) as output,
         ):
             self.assertEqual(
